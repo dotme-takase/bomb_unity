@@ -103,7 +103,7 @@ class BaseCharacter extends MonoBehaviour {
 		var _this = this;
 		_this.bodyAnim = bodyAnim;
 	    if (_this.bodyAnim) {
-	    	_this.legAnim = _this.bodyAnim.clone();
+	    	_this.legAnim = AnimationContainer.clone(_this.bodyAnim);
 	    }
 	};
 	
@@ -251,7 +251,7 @@ class BaseCharacter extends MonoBehaviour {
 		this.preUpdate();
 		
 		transform.rotation = Quaternion.Euler(0, (-180 - this.direction), 0);
-		controller.Move(Vector3(this.vX, 0, this.vY));
+		controller.Move(Vector3(this.vX, 1.0, this.vY));
 		controller.Move(Vector3(0, -1 * transform.position.y, 0));	
 	}
 }	

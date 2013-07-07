@@ -46,10 +46,14 @@ class AnimationContainer {
 	
 	var setAnimation = function (name:String) { 		 
 		reset();
-		this.currentAnimation = animations[name];
-		var start = this.currentAnimation[0];
-		var end = this.currentAnimation[1];
-		this.currentFrame = start;
+		this.currentAnimation = animations[name]; 
+		if (this.currentAnimation) {
+			var start = this.currentAnimation[0];
+			var end = this.currentAnimation[1];
+			this.currentFrame = start;
+		} else {
+			this.currentFrame = 0;
+		}
 		this.currentAnimationFrame = 0;
 		this.currentAnimationName = name; 
 		this.isLooping = false;
@@ -83,9 +87,8 @@ class AnimationContainer {
 		this.isStopped = true;
 	};
 	
-	var clone = function () {
-		var _this = this;
-	    var _clone = new AnimationContainer();
+	static var clone = function (_this : AnimationContainer) {
+	    var _clone:AnimationContainer = new AnimationContainer();
 		_clone.animations = _this.animations;
 		_clone.numX = _this.numX;
 		_clone.numY = _this.numY;
