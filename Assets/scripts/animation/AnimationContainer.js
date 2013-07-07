@@ -15,6 +15,10 @@ class AnimationContainer {
 	}; 
 	
 	var beforeDraw = function(){
+	}; 
+	
+	var reset = function () {
+		this.tempTime = Time.time;
 	};
 	
 	var tick = function() {
@@ -40,7 +44,8 @@ class AnimationContainer {
 		}
 	};
 	
-	var setAnimation = function (name:String){ 		
+	var setAnimation = function (name:String) { 		 
+		reset();
 		this.currentAnimation = animations[name];
 		var start = this.currentAnimation[0];
 		var end = this.currentAnimation[1];
@@ -50,7 +55,8 @@ class AnimationContainer {
 		this.isLooping = false;
 	};
 	
-	var setCurrentFrame = function (frame:int) {
+	var setCurrentFrame = function (frame:int) { 
+		reset();
 		this.currentFrame = frame;
 		this.currentAnimationFrame = 0;
 		this.currentAnimationName = "";

@@ -199,8 +199,9 @@ class BaseCharacter extends MonoBehaviour {
 		        } else if (_this.action == CharacterAction.DEAD) {
 		            //ToDo
 		        } else if (_this.action == CharacterAction.ATTACK) {
-		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame;
-		            if ((_this.bodyAnim.currentAnimation == null)
+		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame; 
+		 			//ToDo
+		 			if ((_this.bodyAnim.currentAnimation == null)
 		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) {
 		                _this.bodyAnim.gotoAndPlay("attack");
 		                _this.bodyAnim.onAnimationEnd = function () {
