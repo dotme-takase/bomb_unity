@@ -1,0 +1,2 @@
+class LegAnimation extends TextureAnimation{
+}

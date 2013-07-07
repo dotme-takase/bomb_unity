@@ -1,0 +1,2 @@
+class BodyAnimation extends TextureAnimation{
+}
