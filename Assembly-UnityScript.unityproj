@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{6089DEBB-0EDC-85E6-7341-703A1871A5B8}</ProjectGuid>
+	<ProjectGuid>{B9F5C0C4-AB50-0B29-BA48-88DEF26F1037}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -44,16 +44,17 @@
 	</Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\scripts\AnimationContainer.js" />
-     <Compile Include="Assets\scripts\BaseCharacter.js" />
-     <Compile Include="Assets\scripts\BodyAnimation.js" />
-     <Compile Include="Assets\scripts\LegAnimation.js" />
+     <Compile Include="Assets\scripts\AppContext.js" />
+     <Compile Include="Assets\scripts\BallBehaviour.js" />
+     <Compile Include="Assets\scripts\CameraBehaviour.js" />
      <Compile Include="Assets\scripts\MapGenerator.js" />
      <Compile Include="Assets\scripts\StageInitiator.js" />
-     <Compile Include="Assets\scripts\TextureAnimation.js" />
-     <Compile Include="Assets\scripts\ballBehavior.js" />
-     <Compile Include="Assets\scripts\cameraBehavior.js" />
-     <Compile Include="Assets\scripts\playerBehavior.js" />
+     <Compile Include="Assets\scripts\animation\AnimationContainer.js" />
+     <Compile Include="Assets\scripts\animation\BodyAnimation.js" />
+     <Compile Include="Assets\scripts\animation\LegAnimation.js" />
+     <Compile Include="Assets\scripts\animation\TextureAnimation.js" />
+     <Compile Include="Assets\scripts\character\BaseCharacter.js" />
+     <Compile Include="Assets\scripts\character\PlayerBehaviour.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
