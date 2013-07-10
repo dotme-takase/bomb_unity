@@ -6,6 +6,6 @@ function Start () {
 function LateUpdate () {
 	if(target){
 		transform.rotation = Quaternion.Euler(90,0,0);
-		transform.position = target.position + targetOffset + (Vector3.up * 20);
+		transform.position = target.position + targetOffset + (Vector3.up * 32);
 	}
 }

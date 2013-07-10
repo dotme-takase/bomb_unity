@@ -54,7 +54,9 @@
      <Compile Include="Assets\scripts\animation\LegAnimation.js" />
      <Compile Include="Assets\scripts\animation\TextureAnimation.js" />
      <Compile Include="Assets\scripts\character\BaseCharacter.js" />
+     <Compile Include="Assets\scripts\character\Enemy1Behaviour.js" />
      <Compile Include="Assets\scripts\character\PlayerBehaviour.js" />
+     <Compile Include="Assets\scripts\item\BaseItem.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

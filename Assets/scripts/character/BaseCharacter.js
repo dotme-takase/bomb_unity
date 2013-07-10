@@ -99,11 +99,19 @@ class BaseCharacter extends MonoBehaviour {
 	    'parried': [0, 7]
 	};
 	
-	var initialize = function(bodyAnim) {
+	var initialize = function(bodyAnim, rightArmName, leftArmName) {
 		var _this = this;
 		_this.bodyAnim = bodyAnim;
 	    if (_this.bodyAnim) {
 	    	_this.legAnim = AnimationContainer.clone(_this.bodyAnim);
+	    } 
+	    
+	    if (rightArmName != null ) {  
+	    	equipRight(rightArmName);
+	    }
+	    
+	    if (leftArmName != null) {  
+	    	equipLeft(leftArmName);
 	    }
 	};
 	
@@ -111,8 +119,8 @@ class BaseCharacter extends MonoBehaviour {
 	var bodyAnim :AnimationContainer = null;
 	var legAnim  :AnimationContainer = null;
 	
-	var leftArm = null;
-	var rightArm = null;	
+	var leftArm:BaseItem = null;
+	var rightArm:BaseItem = null;	
 
 	var handMap = HANDMAP_STANDARD;
 	var speed = 10;
@@ -226,23 +234,82 @@ class BaseCharacter extends MonoBehaviour {
 		        _this.bodyAnim.isStopped = true;
 		    }
 		
-		    if (_this.rightArm) {
-		        var handMapPos = _this.handMap[0][_this.bodyAnim.currentFrame];
-		        //ToDo
-		    }
-		
-		    if (_this.leftArm) {
-		        var lhandMapPos = _this.handMap[1][_this.bodyAnim.currentFrame];
-		        //ToDo
-		    }
-
 			var maxFrame = _this.bodyAnim.numX * _this.bodyAnim.numY / 2;
 		    if (_this.bodyAnim.currentFrame >= maxFrame) {
 		        _this.bodyAnim.gotoAndStopFrame(maxFrame - 1);
 		    }
 		    _this.bodyAnim.tick();
-		    _this.legAnim.currentFrame = (_this.bodyAnim.currentFrame + maxFrame);
+		    _this.legAnim.currentFrame = (_this.bodyAnim.currentFrame + maxFrame); 
+		    
+		    if (_this.rightArm) {  
+		    	var rhandMapPos:Array = _this.handMap[0][_this.bodyAnim.currentFrame];  
+		     	transformItemByHandMap(_this.rightArm, rhandMapPos);
+		    }
+		
+		    if (_this.leftArm) {
+		        var lhandMapPos:Array = _this.handMap[1][_this.bodyAnim.currentFrame];
+		        transformItemByHandMap(_this.leftArm, lhandMapPos);
+		    }
 	    }
+	}
+	
+	function transformItemByHandMap(item:BaseItem, handMapPos:Array){
+		var _xM0:float = handMapPos[0];
+        var _yM0:float = handMapPos[1];
+        
+        var _xM:float = _xM0 * BaseItem.PIXEL_SCALE;
+        var _yM:float = _yM0 * BaseItem.PIXEL_SCALE; 
+        var _thM:float = handMapPos[2]; 
+    	
+    	var optionalOffset = Vector3(0, 0, 0);
+    	if (item.type == BaseItem.TYPE_SWORD) {
+    		var _thOpt:float = _thM * Mathf.PI / 180;
+    		var pos = -1.38;
+    		optionalOffset = Vector3(pos * Mathf.Sin(_thOpt), 0, pos * Mathf.Cos(_thOpt));
+    	} else if (item.type == BaseItem.TYPE_SHIELD) {
+    		optionalOffset = Vector3(0, 0.2, 0);
+    	}
+    	
+    	item.transform.localPosition = Vector3(-1 * _xM, 0, _yM) + optionalOffset; 
+    	item.transform.localEulerAngles = Vector3(0, _thM, 0); 
+	}
+	 
+	function getItemForEquip(itemName:String) { 
+		var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
+		var item:BaseItem = initiator.createItemByName(x(), y(), itemName, true); 
+		return item;
+	};
+	 
+	function equipLeft(itemName:String) {
+	    if(StageInitiator.ITEMS.ContainsKey(itemName)) {  
+	    	 var item:BaseItem = getItemForEquip(itemName);
+	    	 item.transform.parent = this.transform;
+	    	 this.leftArm = item;
+	    }
+	}
+	
+	function equipRight(itemName:String) {
+	    if(StageInitiator.ITEMS.ContainsKey(itemName)) {  
+	    	 var item:BaseItem = getItemForEquip(itemName); 
+	    	 item.transform.parent = this.transform;
+	    	 this.rightArm = item;
+	    }
+	}
+	
+	function ejectLeft() {
+	    //ToDo
+	}
+	
+	function ejectRight() {
+	    //ToDo
+	}
+	
+	function x() {
+		return transform.position.x;
+	}
+	
+	function y() {
+		return transform.position.y;
 	}
 	
 	// Override

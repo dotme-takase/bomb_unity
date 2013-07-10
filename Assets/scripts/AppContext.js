@@ -1,5 +1,8 @@
 class AppContext {
-	static var instance: AppContext = null;
+	public static var map:String[,];
+	public static var dropItems:BaseItem[];
+	
+	static var instance: AppContext = null;	
 	static function getInstance() {
 		if (instance == null) {
 			instance = new AppContext();

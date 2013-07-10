@@ -16,7 +16,7 @@ class PlayerBehaviour extends BaseCharacter {
 		bodyAnim.numX = 8;
 		bodyAnim.numY = 4;
 		
-		this.initialize(bodyAnim);
+		this.initialize(bodyAnim, "shortSword", "woodenShield");
 		var head = GetComponentInChildren(BodyAnimation);
 		head.ac = this.bodyAnim;
 		var foot = GetComponentInChildren(LegAnimation);
