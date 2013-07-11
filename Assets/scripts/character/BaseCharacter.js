@@ -8,6 +8,78 @@ class CharacterAction {
 	static public final var DEAD = 6;
 }
 
+class Node {
+	var pos:Point2D;
+	var goal:Point2D;
+	var fs:int;
+	var hs:int;
+	var ownerList:Node[];
+	var parentNode:Node;
+	var context:AppContext = AppContext.getInstance();
+	function Node(position:Vector3, target:Vector3) {
+	    this.pos = context.getMapPoint(position);
+	    Node(this.pos.x, this.pos.y, target);
+	}
+	
+	function Node(x:int, y:int, target:Vector3) {
+	    this.pos = Point2D(x, y);
+	    this.goal = context.getMapPoint(target);
+	
+	    this.hs = Mathf.Pow((this.pos.x - this.goal.x), 2)
+	        + Mathf.Pow((this.pos.y - this.goal.y), 2);
+	    this.fs = 0;
+	    this.ownerList = null;
+	    this.parentNode = null;
+	}
+	
+    function isGoal() {
+        return ((this.goal.x == this.pos.x) && (this.goal.y == this.pos.y));
+    }
+}
+
+class NodeList {
+    var list:Node[];
+    function find(x:int, y:int) {
+        var self = this.list;
+        for (var t:Node in self) {
+            if ((t.pos.x == x) && (t.pos.y == y)) {
+                return t;
+            }
+        }
+        return null;
+    }
+
+    function remove(node:Node) {
+        var self = this.list;
+        var array = new Array(self);
+        for (var k = 0; k < array.length; k++) {
+        	if(node == self[k]) {
+	       		array.RemoveAt(k);
+	       	}
+        } 
+        this.list = array.ToBuiltin(Node);
+    }
+
+    function append(object:Node) {
+        var array = new Array(this.list);
+        array.push(object);
+        this.list = array.ToBuiltin(Node);
+    }
+
+    function minFs() {
+        var min:int = -1;
+        var self = this.list;
+        var node:Node = null;
+        for (var _node:Node in self) {            
+        	node = _node;
+            if ((min == -1) || (min > node.fs)) {
+                min = node.fs;
+            }
+        }
+        return node;
+    }
+}
+
 class BaseCharacter extends MonoBehaviour {
 	static public var HANDMAP_STANDARD = [
 	    [
@@ -138,7 +210,8 @@ class BaseCharacter extends MonoBehaviour {
 	var teamNumber = 0;
 	var clientTime = 0;
 	var dropList = [];
-	var isPlayer = false;
+	var isPlayer = false; 
+	var stateId:String = AppContext.uuid();
 	
 	function die() {
 	//ToDo
@@ -177,7 +250,7 @@ class BaseCharacter extends MonoBehaviour {
 		            if (_this.bodyAnim.currentAnimation != "parried") {
 		                _this.bodyAnim.gotoAndPlay("parried");
 		                if (_this.parriedCount > 0) {
-		                    _this.context.addEffect(transform.position.x, transform.position.y, "parried");
+		                    _this.context.addEffect(transform.position.x, transform.position.z, "parried");
 		                }
 		                _this.bodyAnim.onAnimationEnd = function () {
 		
@@ -197,7 +270,7 @@ class BaseCharacter extends MonoBehaviour {
 		        } else if (_this.action == CharacterAction.DAMAGE) {
 		            if (_this.bodyAnim.currentAnimation != "damage") {
 		                _this.bodyAnim.gotoAndPlay("damage");
-		                _this.context.addEffect(transform.position.x, transform.position.y, "damage");
+		                _this.context.addEffect(transform.position.x, transform.position.z, "damage");
 		                _this.bodyAnim.onAnimationEnd = function () {
 		                    _this.vX = _this.vY = 0;
 		                    _this.action = CharacterAction.NONE;
@@ -309,8 +382,169 @@ class BaseCharacter extends MonoBehaviour {
 	}
 	
 	function y() {
-		return transform.position.y;
+		return transform.position.z;
 	}
+	
+	function restart(list:Point2D[], index:int) {
+        var start = index % list.Length;
+        var extra = (list.Length - start);
+        var newList = new Point2D[list.Length];
+        for (var x = 0; x < extra; x++){
+        	newList[x] = list[x + start];
+        }
+        
+        for (var y = extra; y < list.Length; y++){
+        	newList[y] = list[y -start];
+        }
+        return newList;
+    }
+        
+	function pathToRandom() {
+		var character = this;
+     	var context:AppContext = AppContext.getInstance();   
+     	var result:Point2D[];
+        var vectors:Point2D[] = [
+            Point2D(1, 0),
+            Point2D(0, -1),
+            Point2D(-1, 0),
+            Point2D(0, 1)
+        ];
+
+        var _vectors = vectors;
+        var temp = new Array();
+        for (var j = 0; j < 30; j++) {
+            var mapHeight = context.map.GetLength(0);
+            var mapWidth = context.map.GetLength(1);
+            var vectorsSize = vectors.length;
+            var mapPt = context.getMapPoint(character.transform.position);
+            for (var i = 0; i < vectorsSize; i++) {
+                var v = _vectors[i];
+                var x = mapPt.x + v.x;
+                var y = mapPt.y + v.y;
+                if ((y < 0) || (y >= mapHeight)
+                    || (x < 0) || (x >= mapWidth)
+                    || (context.map[y, x] != null)) {
+                    continue;
+                }
+                temp.push(Point2D(x, y));
+                _vectors = restart(_vectors, i);
+                break;
+            }
+        }
+        
+        result = temp.ToBuiltin(Point2D);
+        return result;
+    }
+    
+    function pathToTargetByAStar(target:Vector3) {
+        var maxDepth = 100;
+    	var character = this;
+     	var context:AppContext = AppContext.getInstance();  
+        var depth = 0;
+
+        var startNode = new Node(this.transform.position, target);
+        var endNode = null;
+        var mapHeight = context.map.GetLength(0);
+        var mapWidth = context.map.GetLength(1);
+
+        var openList = new NodeList();
+        var closeList = new NodeList();
+        startNode.fs = startNode.hs;
+        openList.append(startNode);
+
+        var vectors:Point2D[] = [
+            Point2D(1, 0),
+            Point2D(0, -1),
+            Point2D(-1, 0),
+            Point2D(0, 1)
+        ];
+        var vectorsSize:int = vectors.Length;
+
+        while (true) {
+            depth++;
+            if (depth > maxDepth) {
+                break;
+            }
+
+            if (openList.list.length == 0) {
+                break;
+            }
+            var n = openList.minFs();
+            if (n == null) {
+                break;
+            }
+            openList.remove(n);
+            closeList.append(n);
+
+
+            if (n.isGoal()) {
+                endNode = n;
+                break;
+            }
+
+
+            //f*() = g*() + h*() -> g*() = f*() - h*()
+            var n_gs = n.fs - n.hs;
+
+            for (var i = 0; i < vectorsSize; i++) {
+                var v = vectors[i];
+                var x = n.pos.x + v.x;
+                var y = n.pos.y + v.y;
+                if ((y < 0) || (y >= mapHeight)
+                    || (x < 0) || (x >= mapWidth)
+                    || (context.map[y, x] == null)) {
+                    continue;
+                }
+
+                var m = openList.find(x, y);
+                var dist = Mathf.Pow((n.pos.x - x), 2)
+                    + Mathf.Pow((n.pos.y - y), 2);
+                if (m) {
+                    if (m.fs > n_gs + m.hs + dist) {
+                        m.fs = n_gs + m.hs + dist;
+                        m.parentNode = n;
+                    }
+                } else {
+                    m = closeList.find(x, y);
+                    if (m) {
+                        if (m.fs > n_gs + m.hs + dist) {
+                            m.fs = n_gs + m.hs + dist;
+                            m.parentNode = n;
+                            openList.append(m);
+                            closeList.remove(m);
+                        }
+
+                    } else {
+                        m = new Node(x, y, target);
+                        m.fs = n_gs + m.hs + dist;
+                        m.parentNode = n;
+                        openList.append(m);
+                    }
+                }
+            }
+        }
+        
+        var list:Array = null;
+        if (endNode != null) {
+            list = Array();
+            var n2:Node = endNode;
+            var count = 0;
+            while ((n2 != null) && (n2.parentNode != null)) {
+                list.Unshift(n.pos);
+                n2 = n2.parentNode;
+            }
+        }
+                 
+        var _heavyTasks = new Array(context.heavyTasks);
+        for(var i1 = 0; i1 < context.heavyTasks.Length; i1++){  
+        	if (context.heavyTasks[i1] == this.stateId) {
+        		_heavyTasks.RemoveAt(i1);
+        	}
+        }
+        context.heavyTasks = _heavyTasks.ToBuiltin(String);
+        
+        return list;
+    }
 	
 	// Override
 	function Update(){	
@@ -319,6 +553,6 @@ class BaseCharacter extends MonoBehaviour {
 		
 		transform.rotation = Quaternion.Euler(0, (-180 - this.direction), 0);
 		controller.Move(Vector3(this.vX, 1.0, this.vY));
-		controller.Move(Vector3(0, -1 * transform.position.y, 0));	
+		controller.Move(Vector3(0, -1 * transform.position.z, 0));	
 	}
 }	

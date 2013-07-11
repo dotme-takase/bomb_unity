@@ -48,6 +48,7 @@
      <Compile Include="Assets\scripts\BallBehaviour.js" />
      <Compile Include="Assets\scripts\CameraBehaviour.js" />
      <Compile Include="Assets\scripts\MapGenerator.js" />
+     <Compile Include="Assets\scripts\Point2D.js" />
      <Compile Include="Assets\scripts\StageInitiator.js" />
      <Compile Include="Assets\scripts\animation\AnimationContainer.js" />
      <Compile Include="Assets\scripts\animation\BodyAnimation.js" />

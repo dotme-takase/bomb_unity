@@ -2,14 +2,13 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets/scripts/AppContext.js">
     <Files>
-      <File FileName="Assets/scripts/MapGenerator.js" Line="63" Column="35" />
-      <File FileName="Assets/scripts/character/PlayerBehaviour.js" Line="12" Column="2" />
-      <File FileName="Assets/scripts/character/BaseCharacter.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/StageInitiator.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/character/BaseCharacter.js" Line="74" Column="23" />
       <File FileName="Assets/scripts/animation/AnimationContainer.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/animation/TextureAnimation.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/character/Enemy1Behaviour.js" Line="21" Column="23" />
-      <File FileName="Assets/scripts/AppContext.js" Line="2" Column="33" />
+      <File FileName="Assets/scripts/StageInitiator.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/character/Enemy1Behaviour.js" Line="37" Column="62" />
+      <File FileName="Assets/scripts/Point2D.js" Line="7" Column="14" />
+      <File FileName="Assets/scripts/AppContext.js" Line="13" Column="21" />
+      <File FileName="Assets/scripts/character/PlayerBehaviour.js" Line="5" Column="33" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

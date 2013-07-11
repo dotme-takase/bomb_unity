@@ -54,7 +54,7 @@ function Start () {
 	    }
 	}
 	
-    var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 1.0, tempY), Quaternion.identity);
+    var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 1.5, tempY), Quaternion.identity);
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
 }
@@ -64,10 +64,10 @@ public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable
 	var object:GameObject = null;
 	var item:BaseItem = null;
 	if (type == BaseItem.TYPE_SWORD) {
-		object = Instantiate (Sword, Vector3(x, 1.0, y), Quaternion.identity);
+		object = Instantiate (Sword, Vector3(x, 0.0, y), Quaternion.identity);
 		
 	} else if (type == BaseItem.TYPE_SHIELD) {
-		object = Instantiate (Shield, Vector3(x, 1.0, y), Quaternion.identity);
+		object = Instantiate (Shield, Vector3(x, 0.0, y), Quaternion.identity);
 	}
 	
 	if (object != null) {
