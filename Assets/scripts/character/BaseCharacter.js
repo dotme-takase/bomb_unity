@@ -33,6 +33,9 @@ class Node {
 	}
 	
     function isGoal() {
+    	if(this.goal == null) {
+    		return false;
+    	}
         return ((this.goal.x == this.pos.x) && (this.goal.y == this.pos.y));
     }
 }
@@ -61,9 +64,14 @@ class NodeList {
     }
 
     function append(object:Node) {
-        var array = new Array(this.list);
-        array.push(object);
-        this.list = array.ToBuiltin(Node);
+    	if(this.list == null){
+    		this.list = new Node[1];
+    		this.list[0] = object;
+    	} else {
+        	var array = new Array(this.list);
+        	array.push(object);
+        	this.list = array.ToBuiltin(Node);
+        }
     }
 
     function minFs() {
@@ -212,6 +220,10 @@ class BaseCharacter extends MonoBehaviour {
 	var dropList = [];
 	var isPlayer = false; 
 	var stateId:String = AppContext.uuid();
+	
+	var target:BaseCharacter = null;
+	var path:Point2D[] = null;
+	var nextToTarget:Point2D = null;
 	
 	function die() {
 	//ToDo
@@ -394,13 +406,13 @@ class BaseCharacter extends MonoBehaviour {
         }
         
         for (var y = extra; y < list.Length; y++){
-        	newList[y] = list[y -start];
+        	newList[y] = list[y - extra];
         }
         return newList;
     }
         
 	function pathToRandom() {
-		var character = this;
+		var character = this; 
      	var context:AppContext = AppContext.getInstance();   
      	var result:Point2D[];
         var vectors:Point2D[] = [
@@ -411,34 +423,48 @@ class BaseCharacter extends MonoBehaviour {
         ];
 
         var _vectors = vectors;
-        var temp = new Array();
-        for (var j = 0; j < 30; j++) {
+        var temp = new Array(); 
+        var mapPt = context.getMapPoint(character.transform.position);
+        for (var j = 0; j < 10; j++) { 
+        	var deadEnd = false;
             var mapHeight = context.map.GetLength(0);
             var mapWidth = context.map.GetLength(1);
             var vectorsSize = vectors.length;
-            var mapPt = context.getMapPoint(character.transform.position);
             for (var i = 0; i < vectorsSize; i++) {
                 var v = _vectors[i];
                 var x = mapPt.x + v.x;
                 var y = mapPt.y + v.y;
-                if ((y < 0) || (y >= mapHeight)
-                    || (x < 0) || (x >= mapWidth)
+                if ((y <= 0) || (y >= mapHeight)
+                    || (x <= 0) || (x >= mapWidth)
                     || (context.map[y, x] != null)) {
                     continue;
+                } 
+                 
+                if (context.map[y, x] == null) {
+	                for (var exists:Point2D in temp) { 
+	                	if ((exists.x == x) && (exists.y == y)) { 
+	                		deadEnd = true;
+	                		break;
+	                	}
+	                } 
+	                if(deadEnd) {
+	                	
+	                } else { 
+		                mapPt = Point2D(x, y);
+		                temp.push(mapPt);  
+		                _vectors = restart(_vectors, i); 
+	                }
+	                break; 
                 }
-                temp.push(Point2D(x, y));
-                _vectors = restart(_vectors, i);
-                break;
             }
         }
         
-        result = temp.ToBuiltin(Point2D);
+        result = temp.ToBuiltin(Point2D); 
         return result;
     }
     
     function pathToTargetByAStar(target:Vector3) {
         var maxDepth = 100;
-    	var character = this;
      	var context:AppContext = AppContext.getInstance();  
         var depth = 0;
 
@@ -482,8 +508,6 @@ class BaseCharacter extends MonoBehaviour {
                 break;
             }
 
-
-            //f*() = g*() + h*() -> g*() = f*() - h*()
             var n_gs = n.fs - n.hs;
 
             for (var i = 0; i < vectorsSize; i++) {
@@ -492,7 +516,7 @@ class BaseCharacter extends MonoBehaviour {
                 var y = n.pos.y + v.y;
                 if ((y < 0) || (y >= mapHeight)
                     || (x < 0) || (x >= mapWidth)
-                    || (context.map[y, x] == null)) {
+                    || (context.map[y, x] != null)) {
                     continue;
                 }
 
@@ -524,15 +548,16 @@ class BaseCharacter extends MonoBehaviour {
             }
         }
         
-        var list:Array = null;
+        var list:Array = Array();
         if (endNode != null) {
-            list = Array();
             var n2:Node = endNode;
-            var count = 0;
             while ((n2 != null) && (n2.parentNode != null)) {
                 list.Unshift(n.pos);
                 n2 = n2.parentNode;
-            }
+            } 
+            this.path = list;
+        } else {
+        	this.path = null;
         }
                  
         var _heavyTasks = new Array(context.heavyTasks);
@@ -542,11 +567,28 @@ class BaseCharacter extends MonoBehaviour {
         	}
         }
         context.heavyTasks = _heavyTasks.ToBuiltin(String);
-        
-        return list;
     }
 	
 	// Override
+	
+	function Start() {
+		var bodyAnim : AnimationContainer = new AnimationContainer();
+		bodyAnim.animations = BaseCharacter.BODY_ANIMATION;
+		bodyAnim.numX = 8;
+		bodyAnim.numY = 4;
+		
+		this.initialize(bodyAnim, null, null);
+		
+		var head = GetComponentInChildren(BodyAnimation);
+		head.ac = this.bodyAnim;
+		var foot = GetComponentInChildren(LegAnimation);
+		foot.ac = this.legAnim;
+		this.bodyAnim.gotoAndStop("walk");
+		var context:AppContext = AppContext.getInstance();
+		context.addCharacter(this); 
+		stateId = AppContext.uuid();
+	}
+	
 	function Update(){	
 		var controller : CharacterController = GetComponent(CharacterController);
 		this.preUpdate();

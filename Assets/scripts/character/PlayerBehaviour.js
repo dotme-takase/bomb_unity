@@ -11,18 +11,9 @@ class PlayerBehaviour extends BaseCharacter {
 	var defenceCount = -1;
 	
 	function Start () {
-		var bodyAnim : AnimationContainer = new AnimationContainer();
-		bodyAnim.animations = BaseCharacter.BODY_ANIMATION;
-		bodyAnim.numX = 8;
-		bodyAnim.numY = 4;
-		
-		this.initialize(bodyAnim, "shortSword", "woodenShield");
+		super.Start();
 		this.teamNumber = 1;
-		var head = GetComponentInChildren(BodyAnimation);
-		head.ac = this.bodyAnim;
-		var foot = GetComponentInChildren(LegAnimation);
-		foot.ac = this.legAnim;
-		this.bodyAnim.gotoAndStop("walk");
+		this.equipRight("shortSword");
 	}
 	
 	function Update () {		

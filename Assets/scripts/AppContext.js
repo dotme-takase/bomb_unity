@@ -1,4 +1,6 @@
 class AppContext {	
+	static var tileSize:float = 10;
+	static var tileDepth:float = 1;
 	static var instance: AppContext = null;	
 	static function getInstance() {
 		if (instance == null) {
@@ -8,9 +10,9 @@ class AppContext {
 	}
 	
 	public var map:String[,];
+	public var floorList:Vector2[];
 	public var dropItems:BaseItem[];
 	public var heavyTasks:String[] = [];
-	public var tileSize = 4;
 	
 	public var characters:BaseCharacter[] = [];
 	function removeCharacter(o:BaseCharacter) {
@@ -25,7 +27,12 @@ class AppContext {
     }
 
     function addCharacter(o:BaseCharacter) {
-        var array = new Array(this.characters);
+        var array:Array;
+        if (this.characters != null) {
+        	array = new Array(this.characters);
+        } else {
+        	array = new Array();
+        }
         array.push(o);
         this.characters = array.ToBuiltin(BaseCharacter);
     }
@@ -39,11 +46,13 @@ class AppContext {
 	}
 	
 	function warpToRandom(o:BaseCharacter) {
-        //ToDo
+        var dice = Mathf.FloorToInt(Random.value * (floorList.Length - 1));
+        var v0 = floorList[dice];
+        o.transform.position = Vector3(v0.x * tileSize, 2.0, v0.y * tileSize);
     }
 	
 	static function getMapPoint(obj:Vector3) {
-        return Point2D(Mathf.FloorToInt(obj.x / 4), Mathf.FloorToInt(obj.z / 4));
+        return Point2D(Mathf.RoundToInt(obj.x / tileSize), Mathf.RoundToInt(obj.z / tileSize));
     }
     
     static function S4() {

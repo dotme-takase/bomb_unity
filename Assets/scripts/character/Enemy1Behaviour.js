@@ -7,27 +7,16 @@ class EnemyMode {
 
 class Enemy1Behaviour extends BaseCharacter {
 	
-	var target:BaseCharacter = null;
 	var aiWait:int = 0;
 	var mode:int = EnemyMode.RANDOM_WALK;
-	var path:Point2D[] = null;
-	var nextToTarget:Point2D = null;
 	
 	function Start () {
-		var bodyAnim : AnimationContainer = new AnimationContainer();
-		bodyAnim.animations = BaseCharacter.BODY_ANIMATION;
-		bodyAnim.numX = 8;
-		bodyAnim.numY = 4;
-		
-		this.initialize(bodyAnim, "", "");
-		var head = GetComponentInChildren(BodyAnimation);
-		head.ac = this.bodyAnim;
-		var foot = GetComponentInChildren(LegAnimation);
-		foot.ac = this.legAnim;
-		this.bodyAnim.gotoAndStop("walk");
+		this.teamNumber = 0;
+		super.Start();
 	}
 	
-	function Update () {		
+	function Update () {
+		this.simpleAction();		
 		super.Update();
 	}
 	
@@ -69,23 +58,21 @@ class Enemy1Behaviour extends BaseCharacter {
         var theta:float;
         var angleForTarget:float;
         
-        var pathDeltaX:float;
-        var pathDeltaY:float;
-        var pathTheta:float;
-        
         if (character.target) {
             deltaX = character.target.transform.position.x - character.transform.position.x;
             deltaY = character.target.transform.position.z - character.transform.position.z;
             range = character.target.transform.lossyScale.z / 2 + character.transform.lossyScale.z / 2;
             distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
-            theta = Mathf.Atan2(deltaY, deltaX);
-            
+            theta = Mathf.Atan2(deltaY, deltaX);           
             angleForTarget = ((theta - transform.localEulerAngles.y) * 180 / Mathf.PI) ;
         } else {
             theta = 0;
             angleForTarget = ((theta - transform.localEulerAngles.y) * 180 / Mathf.PI) - character.direction;
             searchTarget();
         }
+        
+        angleForTarget = ((angleForTarget % 360) + 360) % 360;
+        
         if (character.isAction && (character.action == CharacterAction.DAMAGE
             || character.action == CharacterAction.DEAD
             || character.action == CharacterAction.PARRIED)) {
@@ -94,16 +81,24 @@ class Enemy1Behaviour extends BaseCharacter {
             if (character.mode == EnemyMode.RANDOM_WALK) {
                 if (!character.path) {
 					if (character.target) {
-	                    if (context.heavyTasks.length < 2) {
+	                    if (context.heavyTasks.length <= 1) {
                             var _heavyTasks = new Array(context.heavyTasks);
                             _heavyTasks.push(character.stateId);
 					        context.heavyTasks = _heavyTasks.ToBuiltin(String);
-	                        character.path = pathToTargetByAStar(target.transform.position);
-	                        if (character.path != null) {
-	                            var _path = new Array(character.path);
-                    			character.nextToTarget = _path.shift();
-	                            character.path = _path.ToBuiltin(Point2D);
-	                        }                                
+					        if (context.heavyTasks.length <= 1) {
+						        //pathToTargetByAStar(target.transform.position);
+						        character.path = pathToRandom();
+		                        if (character.path != null) {
+		                        	Debug.Log(stateId + " : " + character.path.length);
+		                            var _path = new Array(character.path);
+	                    			character.nextToTarget = _path.shift();
+	                    			if(_path.length == 0){
+	                    				character.path = pathToRandom();
+	                    			} else {
+		                            	character.path = _path.ToBuiltin(Point2D);
+		                            }
+		                        }                                
+	                        }
 	                    }
                     } else {
                     	character.path = pathToRandom();
@@ -113,7 +108,7 @@ class Enemy1Behaviour extends BaseCharacter {
                     }
                 }
                 if (character.target) {
-                    if ((distance < range * 5)
+                    if ((distance < context.tileSize * 5)
                         && (angleForTarget > -60) && (angleForTarget < 60)) {
                         character.mode = EnemyMode.ATTACK_TO_TARGET;
                     } else if (character.action == CharacterAction.DAMAGE) {
@@ -133,23 +128,35 @@ class Enemy1Behaviour extends BaseCharacter {
                         if ((character.nextToTarget.x == mapPt.x)
                             && (character.nextToTarget.y == mapPt.y)) {
                             var _path1 = new Array(character.path);
-                    		character.nextToTarget = _path1.shift();
-	                        character.path = _path1.ToBuiltin(Point2D);
+                			character.nextToTarget = _path1.shift();
+                			if(_path1.length == 0){
+                				character.path = pathToRandom();
+                			} else {
+                				character.path = _path1.ToBuiltin(Point2D);
+                			}
+                        } else {
+                        	
                         }
+                        
                         if (character.nextToTarget) {
-                            var _deltaX = (character.nextToTarget.x + 0.5) * context.tileSize - character.transform.position.x;
-                            var _deltaY = (character.nextToTarget.y + 0.5) * context.tileSize - character.transform.position.z;
+                            var _deltaX = (character.nextToTarget.x) * context.tileSize - character.transform.position.x;
+                            var _deltaY = (character.nextToTarget.y) * context.tileSize - character.transform.position.z;
+                            
                             var _theta = Mathf.Atan2(_deltaY, _deltaX);
                             character.direction = (_theta * 180 / Mathf.PI);
                         }
                     }
-                    if (character.path.length == 0) {
+                    if (character.path != null && character.path.length == 0) {
                         character.path = null;
                     }
                 }
             } else if (character.mode == EnemyMode.ATTACK_TO_TARGET) {
-                var inRange = (distance < range + character.rightArm.range);
-                if (character.rightArm.isThrowWeapon()) {
+            	var wRange = 0;
+            	if(character.rightArm) {
+            		wRange = character.rightArm.range;
+            	}
+                var inRange = (distance < range + wRange);
+                if (character.rightArm && character.rightArm.isThrowWeapon()) {
                 	var mPt1 = character.context.getMapPoint(character.transform.position);
                 	var mPt2 = character.context.getMapPoint(character.target.transform.position);
                 	var rand = Random.value * 1.5;

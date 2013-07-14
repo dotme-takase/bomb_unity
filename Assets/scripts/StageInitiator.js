@@ -9,14 +9,16 @@ var Sword:GameObject;
 var Shield:GameObject;
 
 var context = AppContext.getInstance();
-var tileSize:float = 10;
-var tileDepth:float = 1; 
+ 
 
 function Start () {
 	var generator = new MapGenerator();
-	var map:String[,] = generator.generate(10, 10); 
+	var map:String[,] = generator.generate(2, 2); 
+	var _floorList = new Array();
 	context.map = map;
-	
+	var tileSize:float = context.tileSize;
+	var tileDepth:float = context.tileDepth;
+
 	var wallOffset:float = (tileSize / 2) - (tileDepth / 2); 
 	var tempX = 0;
 	var tempY = 0; 
@@ -29,6 +31,8 @@ function Start () {
 	        	tempY = y * tileSize;
 	        	Instantiate (Floor, Vector3(x * tileSize, -0.5, y * tileSize)
 	        		, Quaternion.identity);
+	        		
+	        	_floorList.push(Vector2(x, y));
 	        } else {
 		        if ((chip == "w1_t1") || (chip == "w1_tr2") || (chip == "w1_tl2")) { 
 		        	Instantiate (Wall, Vector3(x * tileSize, 5, y * tileSize + wallOffset)
@@ -53,10 +57,16 @@ function Start () {
 	        }
 	    }
 	}
+	context.floorList = _floorList.ToBuiltin(Vector2);
 	
-    var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 1.5, tempY), Quaternion.identity);
+    var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 2.0, tempY), Quaternion.identity);
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
+    
+    for(var e0 =0; e0 < 2; e0++) {
+    	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 20, tempY), Quaternion.identity);
+    	context.warpToRandom(enemyInstance.GetComponent(Enemy1Behaviour));
+    }
 }
 
 public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable) {
