@@ -423,6 +423,8 @@ class BaseCharacter extends MonoBehaviour {
         ];
 
         var _vectors = vectors;
+        _vectors = restart(vectors, Mathf.FloorToInt(Random.value * vectors.length)); 
+        
         var temp = new Array(); 
         var mapPt = context.getMapPoint(character.transform.position);
         for (var j = 0; j < 10; j++) { 
@@ -447,11 +449,19 @@ class BaseCharacter extends MonoBehaviour {
 	                		break;
 	                	}
 	                } 
-	                if(deadEnd) {
+	                if(!deadEnd) {
 	                	
-	                } else { 
-		                mapPt = Point2D(x, y);
-		                temp.push(mapPt);  
+	                	while(true) {
+	                		mapPt = Point2D(x, y);
+		                	temp.push(mapPt); 
+	                		x = mapPt.x + v.x;
+                			y = mapPt.y + v.y;
+		                	if ((y <= 0) || (y >= mapHeight)
+			                    || (x <= 0) || (x >= mapWidth)
+			                    || (context.map[y, x] != null)) {
+			                    break;
+			                } 
+	                	}
 		                _vectors = restart(_vectors, i); 
 	                }
 	                break; 
@@ -460,7 +470,15 @@ class BaseCharacter extends MonoBehaviour {
         }
         
         result = temp.ToBuiltin(Point2D); 
-        return result;
+        character.path = result;
+        
+        var _heavyTasks = new Array(context.heavyTasks);
+        for(var i1 = 0; i1 < context.heavyTasks.Length; i1++){  
+        	if (context.heavyTasks[i1] == this.stateId) {
+        		_heavyTasks.RemoveAt(i1);
+        	}
+        }
+        context.heavyTasks = _heavyTasks.ToBuiltin(String);
     }
     
     function pathToTargetByAStar(target:Vector3) {

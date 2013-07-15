@@ -63,7 +63,7 @@ function Start () {
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
     
-    for(var e0 =0; e0 < 2; e0++) {
+    for(var e0 =0; e0 < 10; e0++) {
     	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 20, tempY), Quaternion.identity);
     	context.warpToRandom(enemyInstance.GetComponent(Enemy1Behaviour));
     }

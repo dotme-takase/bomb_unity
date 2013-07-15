@@ -87,21 +87,22 @@ class Enemy1Behaviour extends BaseCharacter {
 					        context.heavyTasks = _heavyTasks.ToBuiltin(String);
 					        if (context.heavyTasks.length <= 1) {
 						        //pathToTargetByAStar(target.transform.position);
-						        character.path = pathToRandom();
+						        pathToRandom();
 		                        if (character.path != null) {
-		                        	Debug.Log(stateId + " : " + character.path.length);
 		                            var _path = new Array(character.path);
 	                    			character.nextToTarget = _path.shift();
 	                    			if(_path.length == 0){
-	                    				character.path = pathToRandom();
+	                    				pathToRandom();
 	                    			} else {
 		                            	character.path = _path.ToBuiltin(Point2D);
 		                            }
-		                        }                                
+		                        } else {
+		                        	 
+		                        }                               
 	                        }
 	                    }
                     } else {
-                    	character.path = pathToRandom();
+                    	pathToRandom();
                     	var _path0 = new Array(character.path);
                     	character.nextToTarget = _path0.shift();
                     	character.path = _path0.ToBuiltin(Point2D);
@@ -130,7 +131,7 @@ class Enemy1Behaviour extends BaseCharacter {
                             var _path1 = new Array(character.path);
                 			character.nextToTarget = _path1.shift();
                 			if(_path1.length == 0){
-                				character.path = pathToRandom();
+                				pathToRandom();
                 			} else {
                 				character.path = _path1.ToBuiltin(Point2D);
                 			}
@@ -188,7 +189,8 @@ class Enemy1Behaviour extends BaseCharacter {
                     character.isWalk = true;
                 }
                 character.direction = (theta * 180 / Mathf.PI);
-                if (distance > range * 5) {
+                if (distance > range * 5) {  
+                	pathToRandom();
                     character.mode = EnemyMode.RANDOM_WALK;
                 }
             }
