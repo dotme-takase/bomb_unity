@@ -7,9 +7,20 @@ var DownStair:GameObject;
 
 var Sword:GameObject;
 var Shield:GameObject;
+var Thrown:GameObject;
+
+var Effect:GameObject;
+
+var attack:AudioClip;
+var bomb:AudioClip;
+var defeat:AudioClip;
+var downstair:AudioClip;
+var heal:AudioClip;
+var hit:AudioClip;
+var parried:AudioClip;
+var pickup:AudioClip;
 
 var context = AppContext.getInstance();
- 
 
 function Start () {
 	var generator = new MapGenerator();
@@ -63,9 +74,11 @@ function Start () {
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
     
-    for(var e0 =0; e0 < 10; e0++) {
-    	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 20, tempY), Quaternion.identity);
-    	context.warpToRandom(enemyInstance.GetComponent(Enemy1Behaviour));
+    for(var e0 =0; e0 < 3; e0++) {
+    	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 2.0, tempY), Quaternion.identity);
+    	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
+    	context.warpToRandom(enemy);
+    	enemy.equipRight("longSword");
     }
 }
 
@@ -78,6 +91,10 @@ public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable
 		
 	} else if (type == BaseItem.TYPE_SHIELD) {
 		object = Instantiate (Shield, Vector3(x, 0.0, y), Quaternion.identity);
+	} else if (type == BaseItem.TYPE_BOMB
+               || type == BaseItem.TYPE_BOMB_REMOTE
+               || type == BaseItem.TYPE_BOMB_TIMER) {
+		object = Instantiate (Thrown, Vector3(x, 0.0, y), Quaternion.identity);
 	}
 	
 	if (object != null) {
@@ -101,10 +118,50 @@ public function createItemByName(x:float, y:float, itemName:String, forEquip:boo
 	if (StageInitiator.ITEMS.ContainsKey(itemName)) { 
 		var itemOption:Hashtable = StageInitiator.ITEMS[itemName];  
 		var item:BaseItem = createItem(x, y, forEquip, itemOption);  
-		item.itemName = name;
+		item.itemName = itemName;
 		return item; 
 	}
 	return null;
+}
+
+public function addEffectDelegate(x:float, y:float, name: String){
+	var effectInstance = Instantiate (Effect, Vector3(x, 5.0, y), Quaternion.identity);
+    var effect = effectInstance.GetComponent(EffectAnimation);
+    effect.initialize(name);
+}
+
+public static function addEffect(x:float, y:float, name: String){
+	var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
+	initiator.addEffectDelegate(x, y, name);
+}
+
+public function playSoundDelegate(name: String){
+	var sound:AudioClip = null;
+	if( name == "attack"){
+		sound = attack;
+	} else if( name == "bomb"){
+		sound = bomb;
+	} else if( name == "defeat"){
+		sound = defeat;
+	} else if( name == "downstair"){
+		sound = downstair;
+	} else if( name == "heal"){
+		sound = heal;
+	} else if( name == "hit"){
+		sound = hit;
+	} else if( name == "parried"){
+		sound = parried;
+	} else if( name == "pickup"){
+		sound = pickup;
+	}
+	if(sound != null){
+		audio.PlayOneShot(sound, 1.0);
+	}
+}
+
+public static function playSound(name: String){
+	var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
+	initiator.playSoundDelegate(name);
 }
 
 public static var ITEMS = {
@@ -180,61 +237,61 @@ public static var ITEMS = {
         "onUse": function (character:BaseCharacter, target:BaseCharacter) { 
         	var context:AppContext = AppContext.getInstance();
             var aid = 10;
-            context.addEffect(character.x(), character.y(),
+            StageInitiator.addEffect(character.x(), character.y(),
                 'heal');
-            context.playSound("heal");
+            StageInitiator.playSound("heal");
             character.HP += Mathf.Min(100 - character.HP,
                 aid);
         }
     },
     "grenade": {
         "type": BaseItem.TYPE_BOMB,
-        "range2d": "0x1",
+        "range2d": [0, 1],
         "bonusPoint": 12,
         "speed": 24
     },
     "crossGrenade": {
         "type": BaseItem.TYPE_BOMB,
-        "range2d": "64x4",
+        "range2d": [64,4],
         "bonusPoint": 12,
         "speed": 24
     },
     "grenade2x": {
         "type": BaseItem.TYPE_BOMB,
-        "range2d": "64x9",
+        "range2d": [64,9],
         "bonusPoint": 24,
         "speed": 24
     },
     "crossGrenade2x": {
         "type": BaseItem.TYPE_BOMB,
-        "range2d": "128x4",
+        "range2d": [128,4],
         "bonusPoint": 20,
         "speed": 24
     },
     "bombTimer": {
         "type": BaseItem.TYPE_BOMB_TIMER,
-        "range2d": "32x6",
+        "range2d": [32,6],
         "bonusPoint": 12,
         "speed": 24,
         "leftTime": 20
     },
     "crossBombTimer": {
         "type": BaseItem.TYPE_BOMB_TIMER,
-        "range2d": "64x4",
+        "range2d": [64,4],
         "bonusPoint": 16,
         "speed": 24,
         "leftTime": 20
     },
     "bombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
-        "range2d": "96x9",
+        "range2d": [96,9],
         "bonusPoint": 28,
         "speed": 24,
         "leftTime": 20
     },
     "crossBombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
-        "range2d": "160x4",
+        "range2d": [160,4],
         "bonusPoint": 24,
         "speed": 24,
         "leftTime": 20

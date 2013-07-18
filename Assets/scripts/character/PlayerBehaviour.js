@@ -13,7 +13,10 @@ class PlayerBehaviour extends BaseCharacter {
 	function Start () {
 		super.Start();
 		this.teamNumber = 1;
-		this.equipRight("shortSword");
+		this.HP = 1000;
+		this.speed = 10;
+		this.equipRight("bombTimer");
+		this.isPlayer = true;
 	}
 	
 	function Update () {		
@@ -68,9 +71,7 @@ class PlayerBehaviour extends BaseCharacter {
         var _this = this;
         var context = _this.context;
  
-        if (_this.isAction && (_this.action == CharacterAction.DAMAGE
-            || _this.action == CharacterAction.DEAD
-            || _this.action == CharacterAction.PARRIED)) {
+        if (_this.isAction) {
             _this.isWalk = false;
         } else {
             if (_this.isMouseDown || _this.isMouseClick) {
@@ -108,8 +109,10 @@ class PlayerBehaviour extends BaseCharacter {
                     if (_this.action == CharacterAction.ATTACK) {
                     } else if ((_this.action == CharacterAction.DEFENCE)
                         && (_this.defenceCount > 0)) {
+                        _this.isAction = true;
                         _this.action = CharacterAction.ATTACK;
                     } else if (_this.action == CharacterAction.DEFENCE_MOTION) {
+                    	_this.isAction = true;
                         _this.action = CharacterAction.ATTACK;
                     } else {
                         _this.isAction = false;

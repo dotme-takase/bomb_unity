@@ -200,10 +200,11 @@ class BaseCharacter extends MonoBehaviour {
 	var legAnim  :AnimationContainer = null;
 	
 	var leftArm:BaseItem = null;
-	var rightArm:BaseItem = null;	
+	var rightArm:BaseItem = null;
+	var rightArmThrown:String = null;
 
 	var handMap = HANDMAP_STANDARD;
-	var speed = 10;
+	var speed = 4;
 	var direction = 90;
 	var axisX:float = 0;
 	var axisY:float = 0;
@@ -224,18 +225,31 @@ class BaseCharacter extends MonoBehaviour {
 	var target:BaseCharacter = null;
 	var path:Point2D[] = null;
 	var nextToTarget:Point2D = null;
+	var currentFrame = 0;
+	var frameWaited = false;
 	
 	function die() {
+		var _this = this;
+    	_this.HP = 0;
+    	_this.action = CharacterAction.DEAD;
 	//ToDo
 	}
 	
 	function preUpdate() {	
 		var _this = this; 
-		if (_this.bodyAnim && _this.legAnim) {
+		if (_this.bodyAnim && _this.legAnim) { 
 			if (_this.HP <= 0) {
 		        _this.die();
 		    }
-			_this.vX = _this.vY = 0;
+			_this.vX = _this.vY = 0; 
+			
+			if (_this.action != CharacterAction.ATTACK) { 
+				if (_this.rightArmThrown && _this.rightArm == null) { 
+            		_this.equipRight(_this.rightArmThrown); 
+            		_this.rightArmThrown = null;
+            	}
+			}
+			
 		    if (_this.isWalk) {
 		        _this.bodyAnim.isStopped = false;
 		        _this.bodyAnim.gotoAndPlay("walk"); 
@@ -245,7 +259,7 @@ class BaseCharacter extends MonoBehaviour {
 		        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
 		    } else if (_this.isAction) {
 		        if (_this.action == CharacterAction.DEFENCE_MOTION) {
-		            if (_this.bodyAnim.currentAnimation != "defence") {
+		            if (_this.bodyAnim.currentAnimationName != "defence") {
 		                _this.bodyAnim.gotoAndPlay("defence");
 		                _this.bodyAnim.onAnimationEnd = function () {
 		                    _this.vX = _this.vY = 0;
@@ -253,16 +267,18 @@ class BaseCharacter extends MonoBehaviour {
 		                    _this.bodyAnim.gotoAndStopFrame(_this.bodyAnim.currentAnimation[1]);
 		                    _this.bodyAnim.isStopped = true;
 		                };
+		            } 
+		            if (!frameWaited) {
+		            	_this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * - 0.1;
+		            	_this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * - 0.1; 
 		            }
-		            _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -2;
-		            _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -2;
 		        } else if (_this.action == CharacterAction.DEFENCE) {
 		
 		        } else if (_this.action == CharacterAction.PARRIED) {
-		            if (_this.bodyAnim.currentAnimation != "parried") {
+		            if (_this.bodyAnim.currentAnimationName != "parried") {
 		                _this.bodyAnim.gotoAndPlay("parried");
 		                if (_this.parriedCount > 0) {
-		                    _this.context.addEffect(transform.position.x, transform.position.z, "parried");
+		                    StageInitiator.addEffect(transform.position.x, transform.position.z, "parried");
 		                }
 		                _this.bodyAnim.onAnimationEnd = function () {
 		
@@ -275,29 +291,72 @@ class BaseCharacter extends MonoBehaviour {
 		                        _this.bodyAnim.gotoAndPlay("parried");
 		                    }
 		                };
-		                _this.context.playSound("parried");
+		                StageInitiator.playSound("parried");
 		            }
 		            _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -1;
 		            _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -1;
 		        } else if (_this.action == CharacterAction.DAMAGE) {
-		            if (_this.bodyAnim.currentAnimation != "damage") {
+		            if (_this.bodyAnim.currentAnimationName != "damage") {
 		                _this.bodyAnim.gotoAndPlay("damage");
-		                _this.context.addEffect(transform.position.x, transform.position.z, "damage");
+		                StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
 		                _this.bodyAnim.onAnimationEnd = function () {
 		                    _this.vX = _this.vY = 0;
 		                    _this.action = CharacterAction.NONE;
 		                };
-		                _this.context.playSound("hit");
+		                StageInitiator.playSound("hit");
 		            }
 		        } else if (_this.action == CharacterAction.DEAD) {
-		            //ToDo
+		            var size = transform.lossyScale.z * 2;
+		            var half = size / 2;
+		            for (var i = 0; i < 8; i++) {
+		                StageInitiator.addEffect(_this.x() + Random.value * size - half, _this.y() + Random.value * size - half, "dead");
+		            }
+		            StageInitiator.playSound("defeat");
+		            _this.context.removeCharacter(_this);
+		            Destroy(_this.gameObject);
 		        } else if (_this.action == CharacterAction.ATTACK) {
 		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame; 
-		 			//ToDo
-		 			if ((_this.bodyAnim.currentAnimation == null)
+		 			if ((_this.bodyAnim.currentAnimationName == null)
 		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) {
-		                _this.bodyAnim.gotoAndPlay("attack");
-		                _this.bodyAnim.onAnimationEnd = function () {
+		                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
+		                	if (_this.isPlayer){
+		                		_this.prepareThrowWeapon(Vector2(_this.axisX + _this.x(), _this.axisY + _this.y()));
+		                	} else if(_this.target) {
+		                		_this.prepareThrowWeapon(Vector2(_this.target.x(), _this.target.y()));
+		                	} else {
+		                		_this.prepareThrowWeapon(Vector2(Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.context.tileSize + _this.x(), 
+		                										Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.context.tileSize + _this.y()));
+		                	}		
+		                    if (_this.rightArm.range > _this.context.tileSize * 3) {
+		                        _this.bodyAnim.gotoAndPlay("attack__1");
+		                    } else if (_this.rightArm.range > _this.context.tileSize * 2) {
+		                        _this.bodyAnim.gotoAndPlay("attack");
+		                    } else {
+		                        _this.bodyAnim.gotoAndPlay("attack_1");
+		                    }
+		                } else {
+			                var weaponSpeed = 2;
+			                if (_this.rightArm) {
+			                    if (_this.currentFrame == 10) {
+			                        weaponSpeed = 0;
+			                    } else {
+			                        weaponSpeed = _this.rightArm.speed;
+			                    }
+			                }
+			                if (weaponSpeed >= 2) {
+			                    _this.bodyAnim.gotoAndPlay("attack_2");
+			                } else if (weaponSpeed == 1) {
+			                    _this.bodyAnim.gotoAndPlay("attack_1");
+			                } else if (weaponSpeed == -1) {
+			                    _this.bodyAnim.gotoAndPlay("attack__1");
+			                } else if (weaponSpeed <= -2) {
+			                    _this.bodyAnim.gotoAndPlay("attack__2");
+			                } else {
+			                    _this.bodyAnim.gotoAndPlay("attack");
+			                }
+			                StageInitiator.playSound("attack");
+			            }
+		                _this.bodyAnim.onAnimationEnd = function () {		                	
 		                    if (_this.action != CharacterAction.ATTACK) {
 		                        return;
 		                    }
@@ -306,17 +365,116 @@ class BaseCharacter extends MonoBehaviour {
 		                    _this.action = CharacterAction.NONE;
 		                };
 		            }
+		            
+		            if (!_this.frameWaited){ 
+			            if (_this.currentFrame < 10) {
+			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.1;
+			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.1;
+			            } else if (_this.currentFrame > 12) {
+			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.15;
+			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.15;
+			            } else {
+			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * 0.15;
+			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * 0.15;
+			            }
+			            if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
+		            		if (_this.currentFrame >= 12 && _this.currentFrame < 15) {  
+		            			var armDirection:Vector3 = Vector3(_this.rightArm.vX
+                    									, 0
+                    									,_this.rightArm.vY) * 1.25; 
+                    									
+								var forceDirection:Vector3 = armDirection * 20;                    									  
+                    									
+                    		    var _x1:float = _this.rightArm.range - (armDirection.magnitude); 
+                    		    var _y1:float = _this.transform.position.y;
+                    		    var _x2:float = forceDirection.magnitude; 
+                    		    var _y2:float = _y1 * _x2 / _x1; 
+                    		    forceDirection += Vector3.down * _y2 * 8;
+                    		      
+ 								_this.rightArmThrown = _this.rightArm.itemName;
+								Destroy(_this.rightArm.gameObject);                    									
+                    			_this.rightArm = null;	
+                    			
+                    			var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);			
+		            			var armClone = initiator.createItemByName(_this.transform.position.x + armDirection.x, 
+		            													_this.transform.position.y + armDirection.z,
+		            													_this.rightArmThrown, false);
+			                    armClone.vX = armDirection.x;
+			                    armClone.vY = armDirection.z;
+			                    armClone.thrownTime = 0;
+			                    armClone.useCharacter = _this; 
+			                    
+			                    armClone.transform.position = _this.transform.position + armDirection;
+			                    armClone.rigidbody.AddForce(forceDirection, ForceMode.VelocityChange);
+			                } 
+			            }  
+		            } 
 		        } else if (_this.action == CharacterAction.NONE) {
 		            _this.isAction = false;
 		            _this.vX = _this.vY = 0;
 		            _this.bodyAnim.gotoAndStop("walk");     //animate
 		            _this.bodyAnim.isStopped = true;
 		        }
-		    } else {
+		    } else {   	
 		        _this.isAction = false;
 		        _this.vX = _this.vY = 0;
 		        _this.bodyAnim.gotoAndStop("walk");     //animate
 		        _this.bodyAnim.isStopped = true;
+		    } 
+		    
+		    for (var other:BaseCharacter in context.characters) {
+		    	if(other.stateId == this.stateId) {
+		    		continue;
+		    	}    	
+		    	var deltaX = other.x() - x();
+                var deltaY = other.y() - y();
+                var range = _this.transform.lossyScale.z * 2 + other.transform.lossyScale.z * 2;
+                var collisionRange = range * 0.6;
+                var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+                var theta = Mathf.Atan2(deltaY, deltaX);
+                var angleForOther = (theta * 180 / Mathf.PI) - _this.direction;
+                angleForOther = AppContext.fixAngle(angleForOther);
+                var angleForObj = (theta * 180 / Mathf.PI) - 180 - other.direction;
+                angleForObj = AppContext.fixAngle(angleForObj);
+
+                if (_this.teamNumber != other.teamNumber
+                    && _this.isAction && !_this.isWalk
+                    && (_this.action == CharacterAction.ATTACK)
+                    && (_this.attackFrame > 2)
+                    && (_this.rightArm != null)) {
+                    var weaponRange = 0;
+                    var weaponPoint = 0;
+                    if (_this.rightArm.type == BaseItem.TYPE_SWORD) {
+                        weaponRange = _this.rightArm.range * BaseItem.PIXEL_SCALE;
+                        weaponPoint = _this.rightArm.bonusPoint;
+                    }
+				
+                    if ((distance < range + weaponRange)
+                        && ((angleForOther > -20) && (angleForOther < 80))) {
+                        // right
+                        var kickBackRange = -1 * Random.value;
+                        if ((other.isAction && (other.action == CharacterAction.DEFENCE)
+                            && (other.leftArm != null && other.leftArm.type == BaseItem.TYPE_SHIELD))
+                            && ((angleForObj > -30) && (angleForObj < 30))) {
+                            _this.vX -= Mathf.Cos(theta) * kickBackRange;
+                            _this.vY -= Mathf.Sin(theta) * kickBackRange;
+                            _this.isAction = true;
+                            _this.action = CharacterAction.PARRIED;
+                            _this.parriedCount = 1;
+                            other.leftArm.onUse(other, _this);
+                        } else if (!other.isAction || (other.action != CharacterAction.DAMAGE)) {
+                            other.vX -= Mathf.Cos(theta) * kickBackRange;
+                            other.vY -= Mathf.Sin(theta) * kickBackRange;
+                            other.isAction = true;
+                            other.action = CharacterAction.DAMAGE;
+                            other.HP -= Mathf.CeilToInt(weaponPoint * (Random.value * 0.20 + 1));
+                            //ToDo
+                            //if ((_this.playData != null) && (other == _this.player)) {
+                                //_this.playData.enemy = _this;
+                            //}
+                        }
+                    }
+                }
 		    }
 		
 			var maxFrame = _this.bodyAnim.numX * _this.bodyAnim.numY / 2;
@@ -334,7 +492,10 @@ class BaseCharacter extends MonoBehaviour {
 		    if (_this.leftArm) {
 		        var lhandMapPos:Array = _this.handMap[1][_this.bodyAnim.currentFrame];
 		        transformItemByHandMap(_this.leftArm, lhandMapPos);
-		    }
+		    }  
+		     
+		    _this.frameWaited = (_this.currentFrame == _this.bodyAnim.currentFrame);
+		    _this.currentFrame = _this.bodyAnim.currentFrame; 
 	    }
 	}
 	
@@ -586,6 +747,19 @@ class BaseCharacter extends MonoBehaviour {
         }
         context.heavyTasks = _heavyTasks.ToBuiltin(String);
     }
+	
+	function prepareThrowWeapon(target: Vector2) {
+	    var _this = this;
+	    if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
+	        var deltaX = target.x - _this.x();
+	        var deltaY = target.y - _this.y();
+	        var theta = Mathf.Atan2(deltaY, deltaX);
+	        _this.rightArm.range = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+	        _this.rightArm.vX = _this.rightArm.speed * Mathf.Cos(theta) * BaseItem.PIXEL_SCALE;
+	        _this.rightArm.vY = _this.rightArm.speed * Mathf.Sin(theta) * BaseItem.PIXEL_SCALE;
+	        _this.rightArm.useCharacter = this;
+	    }
+	}
 	
 	// Override
 	

@@ -37,14 +37,6 @@ class AppContext {
         this.characters = array.ToBuiltin(BaseCharacter);
     }
 	
-	function addEffect(x:float, y:float, name: String){
-		//ToDo
-	}
-	
-	function playSound(name: String) {
-		//ToDo
-	}
-	
 	function warpToRandom(o:BaseCharacter) {
         var dice = Mathf.FloorToInt(Random.value * (floorList.Length - 1));
         var v0 = floorList[dice];
@@ -61,5 +53,9 @@ class AppContext {
     
     static function uuid() {
         return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+    
+    static function fixAngle(theta:float) {
+    	return theta % 360;
     }
 }

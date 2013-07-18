@@ -2,7 +2,7 @@ class BaseItem extends MonoBehaviour{
 
 	var HP: int;
     var bonusPoint: int;
-    var range: int;
+    var range: float;
     var speed:int;
     var type:String;
     var vX:float;
@@ -10,6 +10,7 @@ class BaseItem extends MonoBehaviour{
     var range2d:int[]; //radius x angle
     var useCharacter:BaseCharacter; 
     var frame = 0; 
+    var thrownTime = -1;
     var itemName:String = "";
 
     function initialize(options:Hashtable) { 
@@ -81,10 +82,10 @@ class BaseItem extends MonoBehaviour{
         if(_this.type == BaseItem.TYPE_SWORD
         || _this.type == BaseItem.TYPE_BOMB
         || _this.type == BaseItem.TYPE_BOMB_REMOTE) {
-            context.playSound("pickup");
+            StageInitiator.playSound("pickup");
             character.equipRight(_this.itemName);
         } else if(_this.type == BaseItem.TYPE_SHIELD) {
-        	context.playSound("pickup");
+        	StageInitiator.playSound("pickup");
             character.equipLeft(_this.itemName);
         } else {
             _this.onUse(character, character);
@@ -124,4 +125,109 @@ class BaseItem extends MonoBehaviour{
             }
         }
     };
+    
+    function x() {
+		return transform.position.x;
+	}
+	
+	function y() {
+		return transform.position.z;
+	}
+    
+    function bomb() { 
+    	var context = AppContext.getInstance();
+        if (this.type == BaseItem.TYPE_BOMB
+            || this.type == BaseItem.TYPE_BOMB_REMOTE
+            || this.type == BaseItem.TYPE_BOMB_TIMER) {
+            var damagedStateId = new Array();
+            if (range2d.length == 2) { 
+            	var _range2d:float[] = new float[2]; 
+            	_range2d[0] = range2d[0] * PIXEL_SCALE;
+            	_range2d[1] = range2d[1];
+            	
+                var bStep1 = context.tileSize / 4;
+                for (var b2 = 1; b2 <= _range2d[1]; b2++) {
+                    for (var b1 = 0; b1 <= _range2d[0]; b1 += bStep1) {
+                        var bAngle = ((Mathf.PI * 2 * b2) / _range2d[1]);
+                        var bX = b1 * Mathf.Cos(bAngle) + this.x();
+                        var bY = b1 * Mathf.Sin(bAngle) + this.y();
+                        var mapPoint = context.getMapPoint(Vector3(bX, 0, bY)); 
+                        var block:String = null;
+                        if ((mapPoint.y > 0 && mapPoint.y < context.map.GetLength(0)) 
+                        	&& (mapPoint.x > 0 && mapPoint.x < context.map.GetLength(1))) {
+                        	block = context.map[mapPoint.y, mapPoint.x]; 
+                        }
+                        if (block == null) {
+                            StageInitiator.addEffect(bX, bY, "bomb");
+                            for (var other in context.characters) {
+                                if (!other.isPlayer && (this.useCharacter.stateId == other.stateId)){
+                                	continue;
+                                } 
+                                var contains = false;
+                                for(var _stateId in damagedStateId) {
+                                	if( other.stateId == _stateId ) { 
+                                		contains = true;
+                                		break;
+                                	} 
+                                }
+                                if (!contains) {
+                                    var deltaX = other.x() - bX;
+                                    var deltaY = other.y() - bY;
+                                    var range = (other.transform.lossyScale.z) * 4;
+                                    var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+                                    if (distance <= range) {
+                                        var theta = Mathf.Atan2((other.y() - this.y()), (other.x() - this.x()));
+                                        var angleForObj = (theta * 180 / Mathf.PI) - 180 - other.direction;
+                                        angleForObj = AppContext.fixAngle(angleForObj);
+                                        if ((other.isAction && (other.action == CharacterAction.DEFENCE)
+                                            && (other.leftArm != null && other.leftArm.type == BaseItem.TYPE_SHIELD))
+                                            && ((angleForObj > -30) && (angleForObj < 30))) {
+                                            other.leftArm.onUse(this.useCharacter, other);
+                                        } else if (!other.isAction || (other.action != CharacterAction.DAMAGE)) {
+                                            var kickBackRange = -1 * Random.value * range / 4;
+                                            other.vX -= Mathf.Cos(theta) * kickBackRange;
+                                            other.vY -= Mathf.Sin(theta) * kickBackRange;
+                                            other.isAction = true;
+                                            other.action = CharacterAction.DAMAGE;
+                                            other.HP -= Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1));
+											 
+											//ToDo
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            //break;
+                        }
+                    }
+                }
+                StageInitiator.playSound("bomb");
+            }
+            Destroy(this.gameObject);
+        }
+    }
+    
+    //Override
+    function Update(){
+    	if( thrownTime >= 0 ) {
+    		thrownTime++; 
+    		if (thrownTime > 100) { 
+	    		if (this.type == BaseItem.TYPE_BOMB_TIMER ) { 
+	    			 this.bomb();
+	    		} 
+    		}
+    	}
+    }
+    
+    function OnCollisionEnter (collision : Collision) {
+    	if( thrownTime > 0 ) {  
+    		rigidbody.useGravity = true;
+    		if ( this.type == BaseItem.TYPE_BOMB ) { 
+    			this.bomb();
+    		} else if (collision.gameObject.transform.position.y <= 0.5) { 
+    			var f:Vector3  = -(rigidbody.mass * rigidbody.velocity); 
+    			rigidbody.AddForce(f, ForceMode.Impulse); 
+    		}
+    	}
+    }
 }

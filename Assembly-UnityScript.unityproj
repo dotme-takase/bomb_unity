@@ -52,6 +52,7 @@
      <Compile Include="Assets\scripts\StageInitiator.js" />
      <Compile Include="Assets\scripts\animation\AnimationContainer.js" />
      <Compile Include="Assets\scripts\animation\BodyAnimation.js" />
+     <Compile Include="Assets\scripts\animation\EffectAnimation.js" />
      <Compile Include="Assets\scripts\animation\LegAnimation.js" />
      <Compile Include="Assets\scripts\animation\TextureAnimation.js" />
      <Compile Include="Assets\scripts\character\BaseCharacter.js" />

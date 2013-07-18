@@ -61,7 +61,7 @@ class Enemy1Behaviour extends BaseCharacter {
         if (character.target) {
             deltaX = character.target.transform.position.x - character.transform.position.x;
             deltaY = character.target.transform.position.z - character.transform.position.z;
-            range = character.target.transform.lossyScale.z / 2 + character.transform.lossyScale.z / 2;
+            range = character.target.transform.lossyScale.z * 2 + character.transform.lossyScale.z * 2;
             distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
             theta = Mathf.Atan2(deltaY, deltaX);           
             angleForTarget = ((theta - transform.localEulerAngles.y) * 180 / Mathf.PI) ;
@@ -71,7 +71,7 @@ class Enemy1Behaviour extends BaseCharacter {
             searchTarget();
         }
         
-        angleForTarget = ((angleForTarget % 360) + 360) % 360;
+        angleForTarget = AppContext.fixAngle(angleForTarget);
         
         if (character.isAction && (character.action == CharacterAction.DAMAGE
             || character.action == CharacterAction.DEAD
@@ -135,9 +135,7 @@ class Enemy1Behaviour extends BaseCharacter {
                 			} else {
                 				character.path = _path1.ToBuiltin(Point2D);
                 			}
-                        } else {
-                        	
-                        }
+                        } 
                         
                         if (character.nextToTarget) {
                             var _deltaX = (character.nextToTarget.x) * context.tileSize - character.transform.position.x;
@@ -154,8 +152,9 @@ class Enemy1Behaviour extends BaseCharacter {
             } else if (character.mode == EnemyMode.ATTACK_TO_TARGET) {
             	var wRange = 0;
             	if(character.rightArm) {
-            		wRange = character.rightArm.range;
+            		wRange = character.rightArm.range * BaseItem.PIXEL_SCALE;
             	}
+            	         	
                 var inRange = (distance < range + wRange);
                 if (character.rightArm && character.rightArm.isThrowWeapon()) {
                 	var mPt1 = character.context.getMapPoint(character.transform.position);

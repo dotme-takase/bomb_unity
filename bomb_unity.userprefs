@@ -1,14 +1,11 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/scripts/StageInitiator.js">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/scripts/character/Enemy1Behaviour.js">
     <Files>
-      <File FileName="Assets/scripts/character/BaseCharacter.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/animation/AnimationContainer.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/StageInitiator.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/character/Enemy1Behaviour.js" Line="1" Column="1" />
-      <File FileName="Assets/scripts/Point2D.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/character/BaseCharacter.js" Line="339" Column="40" />
+      <File FileName="Assets/scripts/character/Enemy1Behaviour.js" Line="155" Column="71" />
       <File FileName="Assets/scripts/AppContext.js" Line="13" Column="21" />
-      <File FileName="Assets/scripts/character/PlayerBehaviour.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/item/BaseItem.js" Line="67" Column="38" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
