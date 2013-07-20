@@ -19,11 +19,11 @@ class PlayerBehaviour extends BaseCharacter {
 		this.isPlayer = true;
 	}
 	
-	function Update () {		
+	function Update () {
+		var cursor:Vector3;		 
 		if(Input.touches.Length > 0){
 		    var touch = Input.touches[0];
-		    axisX = touch.position.x - Screen.width / 2;
-		    axisY = touch.position.y - Screen.height / 2;
+		    cursor = touch.position;
 		    
 		    if(touch.phase == TouchPhase.Began){
 		    	isMouseDown = true; 
@@ -40,9 +40,7 @@ class PlayerBehaviour extends BaseCharacter {
 		     	}
 		    }
 		} else {
-			var pos = Input.mousePosition; 
-			axisX = pos.x - Screen.width / 2;
-			axisY = pos.y - Screen.height / 2; 
+			cursor = Input.mousePosition; 
 			
 			if(Input.GetMouseButtonDown(0)){  
 		   		isMouseDown = true; 
@@ -57,7 +55,12 @@ class PlayerBehaviour extends BaseCharacter {
 		     		isMouseClick = true;
 		     	}
 		    }
-		}
+		} 		
+		cursor.z = Camera.main.transform.position.y;
+		cursor = Camera.main.ScreenToWorldPoint(cursor) - transform.position; 
+		
+		axisX = cursor.x; 
+		axisY = cursor.z;
 		
 		clickDuration = Mathf.Max(0, clickDuration - 1);
 		doubleClickDuration = Mathf.Max(0, doubleClickDuration - 1);

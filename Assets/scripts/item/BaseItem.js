@@ -10,7 +10,7 @@ class BaseItem extends MonoBehaviour{
     var range2d:int[]; //radius x angle
     var useCharacter:BaseCharacter; 
     var frame = 0; 
-    var thrownTime = -1;
+    var thrownTime:float = -1;
     var itemName:String = "";
 
     function initialize(options:Hashtable) { 
@@ -209,9 +209,10 @@ class BaseItem extends MonoBehaviour{
     
     //Override
     function Update(){
-    	if( thrownTime >= 0 ) {
-    		thrownTime++; 
-    		if (thrownTime > 100) { 
+    	if( thrownTime == 0 ) {
+    		thrownTime = Time.time;
+    	} else if ( thrownTime > 0) {
+    		if ((Time.time - thrownTime) > 1) { 
 	    		if (this.type == BaseItem.TYPE_BOMB_TIMER ) { 
 	    			 this.bomb();
 	    		} 

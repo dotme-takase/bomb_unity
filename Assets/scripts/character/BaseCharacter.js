@@ -251,9 +251,11 @@ class BaseCharacter extends MonoBehaviour {
 			}
 			
 		    if (_this.isWalk) {
-		        _this.bodyAnim.isStopped = false;
-		        _this.bodyAnim.gotoAndPlay("walk"); 
-		        _this.bodyAnim.isLooping = true;
+		        _this.bodyAnim.isStopped = false; 
+		        if (_this.bodyAnim.currentAnimationName != "walk") {
+		        	_this.bodyAnim.gotoAndPlay("walk"); 
+		        	_this.bodyAnim.isLooping = true; 
+		        }
 		        
 		        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
 		        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
@@ -320,7 +322,7 @@ class BaseCharacter extends MonoBehaviour {
 		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) {
 		                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
 		                	if (_this.isPlayer){
-		                		_this.prepareThrowWeapon(Vector2(_this.axisX + _this.x(), _this.axisY + _this.y()));
+		                		_this.prepareThrowWeaponByAxis(_this.axisX, _this.axisY);
 		                	} else if(_this.target) {
 		                		_this.prepareThrowWeapon(Vector2(_this.target.x(), _this.target.y()));
 		                	} else {
@@ -385,14 +387,15 @@ class BaseCharacter extends MonoBehaviour {
                     									
 								var forceDirection:Vector3 = armDirection * 20;                    									  
                     									
-                    		    var _x1:float = _this.rightArm.range - (armDirection.magnitude); 
+                    		    var _x1:float = _this.rightArm.range - (armDirection.magnitude) 
+                    		    				+ (Mathf.Pow(_this.rightArm.range, 1.8) * 0.01); 
                     		    var _y1:float = _this.transform.position.y;
                     		    var _x2:float = forceDirection.magnitude; 
                     		    var _y2:float = _y1 * _x2 / _x1; 
-                    		    forceDirection += Vector3.down * _y2 * 8;
+                    		    forceDirection += Vector3.down * _y2; 
                     		      
  								_this.rightArmThrown = _this.rightArm.itemName;
-								Destroy(_this.rightArm.gameObject);                    									
+								Destroy(_this.rightArm.gameObject);                 									
                     			_this.rightArm = null;	
                     			
                     			var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);			
@@ -404,8 +407,10 @@ class BaseCharacter extends MonoBehaviour {
 			                    armClone.thrownTime = 0;
 			                    armClone.useCharacter = _this; 
 			                    
-			                    armClone.transform.position = _this.transform.position + armDirection;
-			                    armClone.rigidbody.AddForce(forceDirection, ForceMode.VelocityChange);
+			                    armClone.transform.position = _this.transform.position + armDirection;  
+			                    if(_x1 >= armDirection.magnitude){
+			                    	armClone.rigidbody.AddForce(forceDirection, ForceMode.VelocityChange); 
+			                    }
 			                } 
 			            }  
 		            } 
@@ -746,19 +751,24 @@ class BaseCharacter extends MonoBehaviour {
         	}
         }
         context.heavyTasks = _heavyTasks.ToBuiltin(String);
-    }
-	
-	function prepareThrowWeapon(target: Vector2) {
+    } 
+    
+    function prepareThrowWeaponByAxis(deltaX:float, deltaY:float) {
 	    var _this = this;
 	    if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
-	        var deltaX = target.x - _this.x();
-	        var deltaY = target.y - _this.y();
 	        var theta = Mathf.Atan2(deltaY, deltaX);
 	        _this.rightArm.range = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
 	        _this.rightArm.vX = _this.rightArm.speed * Mathf.Cos(theta) * BaseItem.PIXEL_SCALE;
 	        _this.rightArm.vY = _this.rightArm.speed * Mathf.Sin(theta) * BaseItem.PIXEL_SCALE;
 	        _this.rightArm.useCharacter = this;
 	    }
+	}
+	
+	function prepareThrowWeapon(target: Vector2) {
+	    var _this = this;
+        var deltaX = target.x - _this.x();
+        var deltaY = target.y - _this.y();
+        prepareThrowWeaponByAxis(deltaX, deltaY);
 	}
 	
 	// Override

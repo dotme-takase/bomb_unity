@@ -125,7 +125,7 @@ public function createItemByName(x:float, y:float, itemName:String, forEquip:boo
 }
 
 public function addEffectDelegate(x:float, y:float, name: String){
-	var effectInstance = Instantiate (Effect, Vector3(x, 5.0, y), Quaternion.identity);
+	var effectInstance = Instantiate (Effect, Vector3(x, 0.5, y), Quaternion.identity);
     var effect = effectInstance.GetComponent(EffectAnimation);
     effect.initialize(name);
 }
@@ -279,21 +279,21 @@ public static var ITEMS = {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [64,4],
         "bonusPoint": 16,
-        "speed": 24,
+        "speed": 32,
         "leftTime": 20
     },
     "bombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [96,9],
         "bonusPoint": 28,
-        "speed": 24,
+        "speed": 32,
         "leftTime": 20
     },
     "crossBombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [160,4],
         "bonusPoint": 24,
-        "speed": 24,
+        "speed": 32,
         "leftTime": 20
     }
 };

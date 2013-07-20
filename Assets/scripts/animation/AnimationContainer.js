@@ -6,10 +6,10 @@ class AnimationContainer {
 	var currentAnimationFrame:int = 0;
 	var currentAnimation = [0, 0];
 	var currentAnimationName:String = "";
-	var fps:float = 8.0;
+	var fps:float = 16.0;
 	var isStopped = false;
 	var isLooping = false;
-	var tempTime = 0;
+	var tempTime:float = 0;
 	var resetFlag = false;
 	var onAnimationEnd = function() { 
 
@@ -23,17 +23,17 @@ class AnimationContainer {
 	};
 	
 	var tick = function() {
-		if (resetFlag == true) {
-			this.tempTime = Time.time;
-			resetFlag = false;
-		}
 		if (this.currentAnimation) {
 			var start : int = this.currentAnimation[0];
 			var end : int = this.currentAnimation[1]; 
 			var size = end - start + 1;
 			
 			if (!this.isStopped) {  
-				this.currentAnimationFrame = ((Time.time - this.tempTime) * (this.fps)) % (size + 1); 				
+				if (resetFlag == true) {
+					this.tempTime = Time.time;
+					resetFlag = false;
+				}
+				this.currentAnimationFrame = Mathf.RoundToInt((Time.time - this.tempTime) * (this.fps)) % (size + 1); 				
 			} else {  
 				isLooping = false;
 			} 
