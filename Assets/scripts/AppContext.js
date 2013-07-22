@@ -1,18 +1,52 @@
+class PlayData {
+	var HP = 0;
+	var MHP = 0;
+	var rightArmName = null;
+	var leftArmName = null;
+	var floorNumber = 0;
+	var lastEnemy:String = "";
+}
+
 class AppContext {	
 	static var tileSize:float = 10;
 	static var tileDepth:float = 1;
 	static var instance: AppContext = null;	
+	static var isLoading = true;
 	static function getInstance() {
 		if (instance == null) {
 			instance = new AppContext();
 		}
 		return instance;
 	}
+	static var playData:PlayData = null;
+	
+	function initializePlayData(){
+		if(!playData || playData.floorNumber <= 0) {
+			playData = new PlayData();
+			playData.floorNumber = 1;
+			if (player) {
+				player.onModifyData();
+			}
+		} else if(player){
+			player.HP = playData.HP;
+			player.MHP = playData.MHP;
+			if(playData.rightArmName) {
+				player.equipRight(playData.rightArmName);
+			}
+			if(playData.leftArmName) {
+				player.equipLeft(playData.leftArmName);
+			}
+		}
+	}
 	
 	public var map:String[,];
 	public var floorList:Vector2[];
+	public var downStairPoint:Vector2;
+	public var autoMap:GameObject[,];
+	public var floorObjectList:GameObject[];
 	public var dropItems:BaseItem[];
 	public var heavyTasks:String[] = [];
+	public var player:BaseCharacter = null;
 	
 	public var characters:BaseCharacter[] = [];
 	function removeCharacter(o:BaseCharacter) {

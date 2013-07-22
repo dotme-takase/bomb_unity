@@ -2,8 +2,10 @@ var Player:GameObject;
 var Enemy1:GameObject;
 
 var Wall:GameObject;
+var Pillar:GameObject;
 var Floor:GameObject;
-var DownStair:GameObject;
+var DownStair:GameObject; 
+var mapChipDownStair:GameObject;
 
 var Sword:GameObject;
 var Shield:GameObject;
@@ -19,14 +21,44 @@ var heal:AudioClip;
 var hit:AudioClip;
 var parried:AudioClip;
 var pickup:AudioClip;
-
+ 
+var EnemyBody1:Material;
+var EnemyFoot1:Material; 
+var EnemyBody2:Material;
+var EnemyFoot2:Material; 
+var EnemyBody3:Material;
+var EnemyFoot3:Material; 
+var EnemyBody4:Material;
+var EnemyFoot4:Material; 
+var EnemyBody5:Material;
+var EnemyFoot5:Material;
+var EnemyBody6:Material;
+var EnemyFoot6:Material;
+var EnemyBody7:Material;
+var EnemyFoot7:Material;
+var EnemyBody8:Material;
+var EnemyFoot8:Material;
+var EnemyBody9:Material;
+var EnemyFoot9:Material;  
+var EnemyBody1_128:Material;
+var EnemyFoot1_128:Material;  
+var EnemyBody2_128:Material;
+var EnemyFoot2_128:Material;  
+ 
 var context = AppContext.getInstance();
 
 function Start () {
-	var generator = new MapGenerator();
-	var map:String[,] = generator.generate(2, 2); 
+	var generator = new MapGenerator(); 
+	var _floorNumber = 1; 
+	if(context.playData) {
+		_floorNumber = context.playData.floorNumber; 
+	}
+	var map:String[,] = generator.generate(2 + Mathf.RoundToInt(Random.value * Mathf.Min(5, _floorNumber / 5))
+											, 2 + Mathf.RoundToInt(Random.value * Mathf.Min(5, _floorNumber / 5))); 
 	var _floorList = new Array();
-	context.map = map;
+	var _floorObjectList = new Array();
+	context.map = map; 
+	context.autoMap = new GameObject[map.GetLength(0), map.GetLength(1)];
 	var tileSize:float = context.tileSize;
 	var tileDepth:float = context.tileDepth;
 
@@ -35,15 +67,17 @@ function Start () {
 	var tempY = 0; 
 	
 	for (var x=0; x < map.GetLength(1); x++) {
-	    for (var y=0; y < map.GetLength(0); y++) {
+	    for (var y=0; y < map.GetLength(0); y++) { 
+	    	context.autoMap[y, x] = null;
 	        var chip:String = map[y, x]; 
 	        if (chip == null) {  
 	        	tempX = x * tileSize; 
 	        	tempY = y * tileSize;
-	        	Instantiate (Floor, Vector3(x * tileSize, -0.5, y * tileSize)
+	        	var floorObject:GameObject = Instantiate (Floor, Vector3(x * tileSize, -0.5, y * tileSize)
 	        		, Quaternion.identity);
 	        		
 	        	_floorList.push(Vector2(x, y));
+	        	_floorObjectList.push(floorObject);
 	        } else {
 		        if ((chip == "w1_t1") || (chip == "w1_tr2") || (chip == "w1_tl2")) { 
 		        	Instantiate (Wall, Vector3(x * tileSize, 5, y * tileSize + wallOffset)
@@ -60,7 +94,25 @@ function Start () {
 		        if ((chip == "w1_b1") || (chip == "w1_br2") || (chip == "w1_bl2")) { 
 			        Instantiate (Wall, Vector3(x * tileSize, 5, y * tileSize - wallOffset)
 			        		, Quaternion.Euler(0, 0, 0));
+		        }  
+		        
+		        if (chip == "w1_tl1") { 
+		        	Instantiate (Pillar, Vector3(x * tileSize + wallOffset, 5, y * tileSize + wallOffset)
+			        		, Quaternion.Euler(0, 0, 0));
 		        } 
+		        if (chip == "w1_tr1") { 
+		        	Instantiate (Pillar, Vector3(x * tileSize - wallOffset, 5, y * tileSize + wallOffset)
+			        		, Quaternion.Euler(0, 0, 0));
+		        }
+		        if (chip == "w1_bl1") { 
+		        	Instantiate (Pillar, Vector3(x * tileSize + wallOffset, 5, y * tileSize - wallOffset)
+			        		, Quaternion.Euler(0, 0, 0));
+		        }
+		        if (chip == "w1_br1") { 
+		        	Instantiate (Pillar, Vector3(x * tileSize - wallOffset, 5, y * tileSize - wallOffset)
+			        		, Quaternion.Euler(0, 0, 0));
+		        }
+
 		        if (chip == "s1") { 
 		        	Instantiate (DownStair, Vector3(x * tileSize, -0.5, y * tileSize)
 		        			, Quaternion.identity);
@@ -68,18 +120,31 @@ function Start () {
 	        }
 	    }
 	}
-	context.floorList = _floorList.ToBuiltin(Vector2);
+	context.floorList = _floorList.ToBuiltin(Vector2); 
+	context.floorObjectList = _floorObjectList.ToBuiltin(GameObject);
 	
     var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 2.0, tempY), Quaternion.identity);
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
-    
-    for(var e0 =0; e0 < 3; e0++) {
+     
+    var enemyNum:int = Mathf.RoundToInt(Mathf.Min(20, (_floorNumber + 1) / 2 + Random.value * _floorNumber));
+    for(var e0 =0; e0 < enemyNum; e0++) {
     	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 2.0, tempY), Quaternion.identity);
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
-    	enemy.equipRight("longSword");
+    	enemy.equipRight("grenade"); 
+    	enemy.MHP = enemy.HP = 10;
     }
+    createDownStair();
+    
+    var autoMap:GameObject = GameObject.Find("autoMap");
+    var autoMapScript:AutoMap = autoMap.GetComponent("AutoMap");
+    if(autoMap) {
+    	var pos = Camera.main.ScreenToWorldPoint(Vector3(0, Screen.height * 0.9, 10));
+    	autoMap.transform.position = pos - Vector3(autoMapScript.chipSize * map.GetLength(0), autoMapScript.chipSize * map.GetLength(1), 0);
+    }
+    
+    context.isLoading = false;
 }
 
 public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable) {
@@ -100,14 +165,17 @@ public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable
 	if (object != null) {
 		item = object.GetComponent(BaseItem);
 		item.initialize(options);
+		var offsetX:float = 0.0;
 		if (type == BaseItem.TYPE_SWORD) { 
-			item.renderer.material.SetTextureOffset ("_MainTex", Vector2(item.frame / BaseItem.SWORDS_NUM_X, 0));
+			offsetX = item.frame / BaseItem.SWORDS_NUM_X;
+			item.renderer.material.SetTextureOffset ("_MainTex", Vector2(offsetX, 0));
 		} else if (type == BaseItem.TYPE_SHIELD) { 
 			var offsetY:float = 0;
 			if (forEquip == true) {
 				offsetY = 0.5;
 			} 
-			item.renderer.material.SetTextureOffset ("_MainTex", Vector2(item.frame / BaseItem.SHIELDS_NUM_X, offsetY)); 
+			offsetX = item.frame / BaseItem.SHIELDS_NUM_X;
+			item.renderer.material.SetTextureOffset ("_MainTex", Vector2(offsetX, offsetY)); 
 		}	 
 		return item;
 	}
@@ -164,73 +232,106 @@ public static function playSound(name: String){
 	initiator.playSoundDelegate(name);
 }
 
+function createDownStair(){
+	var context:AppContext = AppContext.getInstance(); 
+	if(context.floorObjectList && context.floorObjectList.Length > 0) {
+    	var dice = Mathf.FloorToInt(Random.value * (context.floorObjectList.Length - 1));
+    	var obj = context.floorObjectList[dice]; 
+    	context.downStairPoint = context.floorList[dice]; 
+    	
+    	var pos:Vector3 = obj.transform.position;
+    	Instantiate (DownStair, pos, Quaternion.identity);
+    	Destroy(obj); 
+    	 
+    	var oldChipObj = context.autoMap[context.downStairPoint.y, context.downStairPoint.x];
+    	if (oldChipObj) {
+    		var newChipObj = Instantiate (mapChipDownStair, oldChipObj.transform.position, Quaternion.identity);
+    		context.autoMap[context.downStairPoint.y, context.downStairPoint.x] = newChipObj; 
+    		StageInitiator.playSound("downstair");
+    		Destroy(oldChipObj);  
+    	}
+    }
+}
+
 public static var ITEMS = {
     "shortSword": {
         "type": BaseItem.TYPE_SWORD,
         "range": 20,
         "bonusPoint": 4,
-        "speed": 1
+        "speed": 1,
+        "frame": 0
     },
     "longSword": {
         "type": BaseItem.TYPE_SWORD,
         "range": 28,
         "bonusPoint": 8,
-        "speed": 0
+        "speed": 0,
+        "frame": 1
     },
     "fasterShortSword": {
         "type": BaseItem.TYPE_SWORD,
         "range": 20,
         "bonusPoint": 5,
-        "speed": 2
+        "speed": 2,
+        "frame": 2
     },
     "handAxe": {
         "type": BaseItem.TYPE_SWORD,
         "range": 22,
         "bonusPoint": 16,
-        "speed": -2
+        "speed": -2,
+        "frame": 3
     },
     "katana": {
         "type": BaseItem.TYPE_SWORD,
         "range": 28,
         "bonusPoint": 10,
-        "speed": 1
+        "speed": 1,
+        "frame": 4
     },
     "ryuyotou": {
         "type": BaseItem.TYPE_SWORD,
         "range": 24,
         "bonusPoint": 13,
-        "speed": -1
+        "speed": -1,
+        "frame": 5
     },
     "broadSword": {
         "type": BaseItem.TYPE_SWORD,
         "range": 32,
         "bonusPoint": 12,
-        "speed": 0
+        "speed": 0,
+        "frame": 6
     },
     "woodenShield": {
         "type": BaseItem.TYPE_SHIELD,
         "HP": 30,
-        "bonusPoint": 4
+        "bonusPoint": 4,
+        "frame": 0
     },
     "bronzeShield": {
         "type": BaseItem.TYPE_SHIELD,
         "HP": 60,
-        "bonusPoint": 5
+        "bonusPoint": 5,
+        "frame": 1
     },
     "ironShield": {
         "type": BaseItem.TYPE_SHIELD,
         "HP": 120,
-        "bonusPoint": 6
+        "bonusPoint": 6,
+        "frame": 2
     },
     "blueShield": {
         "type": BaseItem.TYPE_SHIELD,
         "HP": 80,
-        "bonusPoint": 12
+        "bonusPoint": 12,
+        "frame": 3
     },
     "redShield": {
     	"type": BaseItem.TYPE_SHIELD,
         "HP": 90,
-        "bonusPoint": 16
+        "bonusPoint": 16,
+        "frame": 4
     },
     "aidBox": {
         "type": BaseItem.TYPE_MISC,
@@ -240,9 +341,10 @@ public static var ITEMS = {
             StageInitiator.addEffect(character.x(), character.y(),
                 'heal');
             StageInitiator.playSound("heal");
-            character.HP += Mathf.Min(100 - character.HP,
+            character.HP += Mathf.Min(character.MHP - character.HP,
                 aid);
-        }
+        },
+        "frame": 0
     },
     "grenade": {
         "type": BaseItem.TYPE_BOMB,

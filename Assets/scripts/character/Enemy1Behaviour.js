@@ -80,7 +80,7 @@ class Enemy1Behaviour extends BaseCharacter {
         } else {
             if (character.mode == EnemyMode.RANDOM_WALK) {
                 if (!character.path) {
-					if (character.target) {
+					if (character.target && character.target.gameObject) {
 	                    if (context.heavyTasks.length <= 1) {
                             var _heavyTasks = new Array(context.heavyTasks);
                             _heavyTasks.push(character.stateId);
@@ -159,13 +159,15 @@ class Enemy1Behaviour extends BaseCharacter {
                 if (character.rightArm && character.rightArm.isThrowWeapon()) {
                 	var mPt1 = character.context.getMapPoint(character.transform.position);
                 	var mPt2 = character.context.getMapPoint(character.target.transform.position);
-                	var rand = Random.value * 1.5;
+                	var rand = Random.value * 3.0;
                     inRange = (((mPt1.x == mPt2.x) || (mPt1.y == mPt2.y))
-                    		&& (distance < range + character.transform.lossyScale.z * (1.5 + rand)));
+                    		&& (distance < range + character.transform.lossyScale.z * (3.0 + rand)));
                 }
                 if (character.target.HP <= 0) {
                     character.mode = EnemyMode.RANDOM_WALK;
-                } else if (inRange || (character.action == CharacterAction.ATTACK)) {
+                } else if (inRange || (character.action == CharacterAction.ATTACK)
+                					|| (character.action == CharacterAction.DEFENCE_MOTION)
+                					|| (character.action == CharacterAction.DEFENCE)) {
                     var dice = Random.value * 4;
                     if (!character.isAction) {
                         character.isWalk = false;
@@ -188,7 +190,7 @@ class Enemy1Behaviour extends BaseCharacter {
                     character.isWalk = true;
                 }
                 character.direction = (theta * 180 / Mathf.PI);
-                if (distance > range * 5) {  
+                if (distance > range * 10) {  
                 	pathToRandom();
                     character.mode = EnemyMode.RANDOM_WALK;
                 }

@@ -10,16 +10,38 @@ class PlayerBehaviour extends BaseCharacter {
 	var duration = 10;
 	var defenceCount = -1;
 	
+	function onModifyData(){
+		var context:AppContext = AppContext.getInstance();
+		if (context && context.playData) {
+			context.playData.HP = this.HP;
+			context.playData.MHP = this.MHP;
+			if(this.rightArm) {
+				context.playData.rightArmName = this.rightArm.itemName;
+			} else {
+				context.playData.rightArmName = null;
+			}
+			if(this.leftArm) {
+				context.playData.leftArmName = this.leftArm.itemName;
+			} else {
+				context.playData.leftArmName = null;
+			}
+		}
+	} 
+	
 	function Start () {
 		super.Start();
 		this.teamNumber = 1;
-		this.HP = 1000;
+		this.MHP = this.HP = 100;
 		this.speed = 10;
 		this.equipRight("bombTimer");
 		this.isPlayer = true;
+		var context:AppContext = AppContext.getInstance();
+		context.player = this;
+		context.initializePlayData();
 	}
 	
-	function Update () {
+	function Update () { 
+		var context:AppContext = AppContext.getInstance();
 		var cursor:Vector3;		 
 		if(Input.touches.Length > 0){
 		    var touch = Input.touches[0];
@@ -67,7 +89,22 @@ class PlayerBehaviour extends BaseCharacter {
 		
 		inputAction();
 		isMouseClick = isMouseDoubleClick = false;
-		super.Update();
+		super.Update(); 
+		
+		if(context && context.playData) {
+			var mapPoint = context.getMapPoint(this.transform.position);
+       		var mapHeight = context.map.GetLength(0);
+        	var mapWidth = context.map.GetLength(1);		
+                
+            if (context.downStairPoint != null
+            	 && (context.downStairPoint.x == mapPoint.x)
+            	 && (context.downStairPoint.y == mapPoint.y)) {
+            	 context.playData.floorNumber++;
+            	 this.HP = this.MHP;
+            	 this.onModifyData();
+            	 Application.LoadLevel('plane');
+            }
+		}
 	}
 	
 	function inputAction() {
