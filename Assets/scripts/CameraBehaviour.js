@@ -1,6 +1,8 @@
 var target : Transform; 
 var targetOffset = Vector3.zero;
+var autoMap:GameObject;
 function Start () {
+	//autoMap.transform.localPosition = Vector3(0, 0, 10);
 }
 
 function LateUpdate () {

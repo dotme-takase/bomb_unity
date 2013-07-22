@@ -11,6 +11,7 @@ class BaseItem extends MonoBehaviour{
     var useCharacter:BaseCharacter; 
     var frame = 0; 
     var thrownTime:float = -1;
+    var thrownMaxCount:int = 1;
     var itemName:String = "";
 
     function initialize(options:Hashtable) { 
@@ -55,6 +56,8 @@ class BaseItem extends MonoBehaviour{
     	} else { 
     		 this.frame = 0;
     	}
+    	
+    	this.thrownMaxCount = 1;
     }
 
     public static final var TYPE_SWORD = "sword";
@@ -66,11 +69,11 @@ class BaseItem extends MonoBehaviour{
     public static final var TYPE_BOMB_REMOTE = "bombRemote";
  
  	public static final var PIXEL_SCALE:float = 0.0625;
- 	public static final var SWORDS_NUM_X:int = 16;
- 	public static final var SWORDS_NUM_Y:int = 1;
+ 	public static final var SWORDS_NUM_X:float = 16;
+ 	public static final var SWORDS_NUM_Y:float = 1;
  	
- 	public static final var SHIELDS_NUM_X:int = 16;
- 	public static final var SHIELDS_NUM_Y:int = 2;
+ 	public static final var SHIELDS_NUM_X:float = 16;
+ 	public static final var SHIELDS_NUM_Y:float = 2;
   
   	public static final var ITEMS_NUM_X:int = 16;
  	public static final var ITEMS_NUM_Y:int = 2;
@@ -202,6 +205,9 @@ class BaseItem extends MonoBehaviour{
                     }
                 }
                 StageInitiator.playSound("bomb");
+            }
+            if (this.useCharacter) {
+            	this.useCharacter.itemThrownCount = Mathf.Max(0, this.useCharacter.itemThrownCount - 1);
             }
             Destroy(this.gameObject);
         }

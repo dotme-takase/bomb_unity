@@ -6,7 +6,7 @@ class AnimationContainer {
 	var currentAnimationFrame:int = 0;
 	var currentAnimation = [0, 0];
 	var currentAnimationName:String = "";
-	var fps:float = 16.0;
+	var fps:float = 30.0;
 	var isStopped = false;
 	var isLooping = false;
 	var tempTime:float = 0;

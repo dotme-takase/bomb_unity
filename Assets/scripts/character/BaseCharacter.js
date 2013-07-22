@@ -193,6 +193,9 @@ class BaseCharacter extends MonoBehaviour {
 	    if (leftArmName != null) {  
 	    	equipLeft(leftArmName);
 	    }
+	    
+	    _this.transform.localScale = Vector3(_this.transform.localScale.x * _this.scale, _this.transform.localScale.y, _this.transform.localScale.z * _this.scale); 
+	    _this.transform.position += Vector3.up * _this.transform.position.y * _this.scale;
 	};
 	
 	var context :AppContext = AppContext.getInstance();
@@ -201,9 +204,12 @@ class BaseCharacter extends MonoBehaviour {
 	
 	var leftArm:BaseItem = null;
 	var rightArm:BaseItem = null;
-	var rightArmThrown:String = null;
+	var itemThrownName:String = null;
+	var itemThrownMaxCount:int = 0;
+	var itemThrownCount:int = 0;
 
 	var handMap = HANDMAP_STANDARD;
+	var scale:float = 2.0;
 	var speed = 4;
 	var direction = 90;
 	var axisX:float = 0;
@@ -215,12 +221,14 @@ class BaseCharacter extends MonoBehaviour {
 	var parriedCount = 0;
 	var attackFrame = 0;
 	var isWalk = false;
-	var HP = 20;
+	var MHP = 20;
+	var HP = MHP;
 	var teamNumber = 0;
 	var clientTime = 0;
 	var dropList = [];
 	var isPlayer = false; 
 	var stateId:String = AppContext.uuid();
+	var damageLoop = 0;
 	
 	var target:BaseCharacter = null;
 	var path:Point2D[] = null;
@@ -244,9 +252,11 @@ class BaseCharacter extends MonoBehaviour {
 			_this.vX = _this.vY = 0; 
 			
 			if (_this.action != CharacterAction.ATTACK) { 
-				if (_this.rightArmThrown && _this.rightArm == null) { 
-            		_this.equipRight(_this.rightArmThrown); 
-            		_this.rightArmThrown = null;
+				if (_this.itemThrownName 
+					&& _this.rightArm == null
+					&& (_this.itemThrownCount < _this.itemThrownMaxCount)) { 
+            		_this.equipRight(_this.itemThrownName); 
+            		_this.itemThrownName = null;
             	}
 			}
 			
@@ -300,12 +310,20 @@ class BaseCharacter extends MonoBehaviour {
 		        } else if (_this.action == CharacterAction.DAMAGE) {
 		            if (_this.bodyAnim.currentAnimationName != "damage") {
 		                _this.bodyAnim.gotoAndPlay("damage");
-		                StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
 		                _this.bodyAnim.onAnimationEnd = function () {
-		                    _this.vX = _this.vY = 0;
-		                    _this.action = CharacterAction.NONE;
+		                	if(_this.damageLoop <= 1) {
+		                		_this.damageLoop = 0;
+		                    	_this.vX = _this.vY = 0;
+		                    	_this.action = CharacterAction.NONE;
+		                    } else {
+		                    	_this.damageLoop--;
+		                    }
 		                };
-		                StageInitiator.playSound("hit");
+		                if( _this.damageLoop == 0 ) {
+			                _this.damageLoop = Mathf.RoundToInt(Random.value * 2) + 2;
+			                StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
+			                StageInitiator.playSound("hit");
+		                }
 		            }
 		        } else if (_this.action == CharacterAction.DEAD) {
 		            var size = transform.lossyScale.z * 2;
@@ -356,7 +374,9 @@ class BaseCharacter extends MonoBehaviour {
 			                } else {
 			                    _this.bodyAnim.gotoAndPlay("attack");
 			                }
-			                StageInitiator.playSound("attack");
+			                if (_this.rightArm ) {
+			                	StageInitiator.playSound("attack");
+			                }
 			            }
 		                _this.bodyAnim.onAnimationEnd = function () {		                	
 		                    if (_this.action != CharacterAction.ATTACK) {
@@ -381,9 +401,8 @@ class BaseCharacter extends MonoBehaviour {
 			            }
 			            if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
 		            		if (_this.currentFrame >= 12 && _this.currentFrame < 15) {  
-		            			var armDirection:Vector3 = Vector3(_this.rightArm.vX
-                    									, 0
-                    									,_this.rightArm.vY) * 1.25; 
+		            			var armDirection:Vector3 = 
+		            					Vector3(_this.rightArm.vX, 0 ,_this.rightArm.vY) * 1.25; 
                     									
 								var forceDirection:Vector3 = armDirection * 20;                    									  
                     									
@@ -394,14 +413,17 @@ class BaseCharacter extends MonoBehaviour {
                     		    var _y2:float = _y1 * _x2 / _x1; 
                     		    forceDirection += Vector3.down * _y2; 
                     		      
- 								_this.rightArmThrown = _this.rightArm.itemName;
-								Destroy(_this.rightArm.gameObject);                 									
-                    			_this.rightArm = null;	
+ 								_this.itemThrownName = _this.rightArm.itemName;
+ 								_this.itemThrownMaxCount = _this.rightArm.thrownMaxCount;
+ 								_this.itemThrownCount++;
+ 								_this.itemThrownName = _this.rightArm.itemName;
                     			
                     			var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);			
 		            			var armClone = initiator.createItemByName(_this.transform.position.x + armDirection.x, 
 		            													_this.transform.position.y + armDirection.z,
-		            													_this.rightArmThrown, false);
+		            													_this.itemThrownName, false); 
+		            													
+		            			armClone.transform.localScale = Vector3(armClone.transform.localScale.x * this.scale, armClone.transform.localScale.y, armClone.transform.localScale.z * this.scale);								
 			                    armClone.vX = armDirection.x;
 			                    armClone.vY = armDirection.z;
 			                    armClone.thrownTime = 0;
@@ -410,7 +432,12 @@ class BaseCharacter extends MonoBehaviour {
 			                    armClone.transform.position = _this.transform.position + armDirection;  
 			                    if(_x1 >= armDirection.magnitude){
 			                    	armClone.rigidbody.AddForce(forceDirection, ForceMode.VelocityChange); 
-			                    }
+			                    } else {
+			                    	armClone.rigidbody.useGravity = true;
+			                    } 
+			                    
+			                    Destroy(_this.rightArm.gameObject);                 									
+                    			_this.rightArm = null;	
 			                } 
 			            }  
 		            } 
@@ -527,7 +554,11 @@ class BaseCharacter extends MonoBehaviour {
 	 
 	function getItemForEquip(itemName:String) { 
 		var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
-		var item:BaseItem = initiator.createItemByName(x(), y(), itemName, true); 
+		var item:BaseItem = initiator.createItemByName(x(), y(), itemName, true);   
+		
+		item.transform.localScale = Vector3(item.transform.localScale.x * this.scale, item.transform.localScale.y, item.transform.localScale.z * this.scale); 
+	    item.transform.position += Vector3.up * item.transform.position.y * this.scale;
+		
 		return item;
 	};
 	 
@@ -535,7 +566,7 @@ class BaseCharacter extends MonoBehaviour {
 	    if(StageInitiator.ITEMS.ContainsKey(itemName)) {  
 	    	 var item:BaseItem = getItemForEquip(itemName);
 	    	 item.transform.parent = this.transform;
-	    	 this.leftArm = item;
+	    	 this.leftArm = item; 
 	    }
 	}
 	
@@ -543,16 +574,22 @@ class BaseCharacter extends MonoBehaviour {
 	    if(StageInitiator.ITEMS.ContainsKey(itemName)) {  
 	    	 var item:BaseItem = getItemForEquip(itemName); 
 	    	 item.transform.parent = this.transform;
-	    	 this.rightArm = item;
+	    	 this.rightArm = item; 
 	    }
 	}
 	
 	function ejectLeft() {
-	    //ToDo
+	     if(this.leftArm) {   
+	     	Destroy(this.leftArm.gameObject); 
+	    	this.leftArm = null; 
+	     }
 	}
 	
-	function ejectRight() {
-	    //ToDo
+	function ejectRight() { 
+		if(this.rightArm) {   
+	     	Destroy(this.rightArm.gameObject); 
+	    	this.rightArm = null; 
+	    }
 	}
 	
 	function x() {
@@ -770,7 +807,10 @@ class BaseCharacter extends MonoBehaviour {
         var deltaY = target.y - _this.y();
         prepareThrowWeaponByAxis(deltaX, deltaY);
 	}
-	
+	 
+	 
+	function onModifyData(){
+	} 
 	// Override
 	
 	function Start() {
