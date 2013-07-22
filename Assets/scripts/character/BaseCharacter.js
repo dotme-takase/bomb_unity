@@ -240,6 +240,7 @@ class BaseCharacter extends MonoBehaviour {
 		var _this = this;
     	_this.HP = 0;
     	_this.action = CharacterAction.DEAD;
+    	_this.onModifyData();
 	//ToDo
 	}
 	

@@ -140,7 +140,7 @@ function Start () {
     var autoMap:GameObject = GameObject.Find("autoMap");
     var autoMapScript:AutoMap = autoMap.GetComponent("AutoMap");
     if(autoMap) {
-    	var pos = Camera.main.ScreenToWorldPoint(Vector3(0, Screen.height * 0.9, 10));
+    	var pos = Camera.main.ScreenToWorldPoint(Vector3(5, Screen.height * 0.9, 10));
     	autoMap.transform.position = pos - Vector3(autoMapScript.chipSize * map.GetLength(0), autoMapScript.chipSize * map.GetLength(1), 0);
     }
     

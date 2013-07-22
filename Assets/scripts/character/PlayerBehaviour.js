@@ -12,7 +12,11 @@ class PlayerBehaviour extends BaseCharacter {
 	
 	function onModifyData(){
 		var context:AppContext = AppContext.getInstance();
-		if (context && context.playData) {
+		if(this.HP <= 0) {
+			context.playData = null;
+			Application.LoadLevel('plane');
+			
+		} else if (context && context.playData) {
 			context.playData.HP = this.HP;
 			context.playData.MHP = this.MHP;
 			if(this.rightArm) {
