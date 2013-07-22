@@ -209,7 +209,7 @@ class BaseCharacter extends MonoBehaviour {
 	var itemThrownCount:int = 0;
 
 	var handMap = HANDMAP_STANDARD;
-	var scale:float = 2.0;
+	var scale:float = 1.0;
 	var speed = 4;
 	var direction = 90;
 	var axisX:float = 0;
@@ -423,8 +423,7 @@ class BaseCharacter extends MonoBehaviour {
 		            													_this.transform.position.y + armDirection.z,
 		            													_this.itemThrownName, false); 
 		            													
-		            			armClone.transform.localScale = Vector3(armClone.transform.localScale.x * this.scale, armClone.transform.localScale.y, armClone.transform.localScale.z * this.scale);								
-			                    armClone.vX = armDirection.x;
+		            			armClone.vX = armDirection.x;
 			                    armClone.vY = armDirection.z;
 			                    armClone.thrownTime = 0;
 			                    armClone.useCharacter = _this; 
@@ -555,9 +554,6 @@ class BaseCharacter extends MonoBehaviour {
 	function getItemForEquip(itemName:String) { 
 		var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
 		var item:BaseItem = initiator.createItemByName(x(), y(), itemName, true);   
-		
-		item.transform.localScale = Vector3(item.transform.localScale.x * this.scale, item.transform.localScale.y, item.transform.localScale.z * this.scale); 
-	    item.transform.position += Vector3.up * item.transform.position.y * this.scale;
 		
 		return item;
 	};
