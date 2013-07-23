@@ -13,7 +13,8 @@ class BaseItem extends MonoBehaviour{
     var thrownTime:float = -1;
     var thrownMaxCount:int = 1;
     var itemName:String = "";
-
+	var stopFlag = false;
+	
     function initialize(options:Hashtable) { 
     	if (options.ContainsKey("HP")) { 
     		 this.HP = options["HP"];
@@ -232,8 +233,8 @@ class BaseItem extends MonoBehaviour{
     		if ( this.type == BaseItem.TYPE_BOMB ) { 
     			this.bomb();
     		} else if (collision.gameObject.transform.position.y <= 0.5) { 
-    			var f:Vector3  = -(rigidbody.mass * rigidbody.velocity); 
-    			rigidbody.AddForce(f, ForceMode.Impulse); 
+    			stopFlag = true;
+    			rigidbody.velocity = Vector3.zero;
     		}
     	}
     }

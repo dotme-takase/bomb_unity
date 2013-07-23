@@ -48,6 +48,7 @@ var EnemyFoot2_128:Material;
 var context = AppContext.getInstance();
 
 function Start () {
+	loadMasterData();
 	var generator = new MapGenerator(); 
 	var _floorNumber = 1; 
 	if(context.playData) {
@@ -132,19 +133,57 @@ function Start () {
     	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 2.0, tempY), Quaternion.identity);
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
-    	enemy.equipRight("grenade"); 
-    	enemy.MHP = enemy.HP = 10;
+    	
+    	var enemyData:Hashtable = enemyData[Mathf.CeilToInt(Random.value * enemyData.Length) - 1]; 
+    	createEnemy(enemyData, enemy);
     }
     createDownStair();
     
     var autoMap:GameObject = GameObject.Find("autoMap");
     var autoMapScript:AutoMap = autoMap.GetComponent("AutoMap");
     if(autoMap) {
-    	var pos = Camera.main.ScreenToWorldPoint(Vector3(5, Screen.height * 0.9, 10));
+    	var pos = Camera.main.ScreenToWorldPoint(Vector3(Screen.width * 0.5, Screen.height * 0.9, 10));
     	autoMap.transform.position = pos - Vector3(autoMapScript.chipSize * map.GetLength(0), autoMapScript.chipSize * map.GetLength(1), 0);
     }
     
     context.isLoading = false;
+}
+
+public function createEnemy(data:Hashtable, enemy:BaseCharacter) {
+	if (data.ContainsKey("body")) { 
+    	var body = enemy.GetComponentInChildren(BodyAnimation);
+    	var matBody:Material = data["body"];
+    	Debug.Log(matBody);
+    	Debug.Log(EnemyBody1);
+		body.renderer.material = matBody;
+    } 
+    
+    if (data.ContainsKey("foot")) { 
+    	var foot = enemy.GetComponentInChildren(LegAnimation);
+		foot.renderer.material = data["foot"];
+    } 
+    
+    if (data.ContainsKey("HP")) { 
+    	enemy.MHP = enemy.HP = data["HP"];
+    } 
+    
+    if (data.ContainsKey("speed")) { 
+    	enemy.speed = data["speed"];
+    } 
+    
+    if (data.ContainsKey("scale")) { 
+    	enemy.scale = data["scale"];
+    	enemy.transform.localScale = Vector3(enemy.transform.localScale.x * enemy.scale, enemy.transform.localScale.y, enemy.transform.localScale.z * enemy.scale); 
+	    enemy.transform.position += Vector3.up * enemy.transform.position.y * enemy.scale;
+    }
+    
+    if (data.ContainsKey("rightArm") && (data["rightArm"] != null)) { 
+    	enemy.equipRight(data["rightArm"]);
+    } 
+    
+    if (data.ContainsKey("leftArm") && (data["leftArm"] != null)) { 
+    	enemy.equipLeft(data["leftArm"]);
+    } 
 }
 
 public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable) {
@@ -299,7 +338,7 @@ public static var ITEMS = {
     "broadSword": {
         "type": BaseItem.TYPE_SWORD,
         "range": 32,
-        "bonusPoint": 12,
+        "bonusPoint": 48,
         "speed": 0,
         "frame": 6
     },
@@ -399,3 +438,140 @@ public static var ITEMS = {
         "leftTime": 20
     }
 };
+
+var enemyData:Hashtable[] = null;
+
+function loadMasterData(){
+	enemyData = [
+	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 10,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'grenade',
+	        'leftArm': 'woodenShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody2,
+	        'foot': EnemyFoot2,
+	        'name': 'SilverGuard',
+	        'HP': 50,
+	        'speed': 4,
+	        'scale': 1.1,
+	        'rightArm': 'grenade',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody3,
+	        'foot': EnemyFoot3,
+	        'name': 'Musha',
+	        'HP': 20,
+	        'speed': 6,
+	        'scale': 1.2,
+	        'rightArm': 'katana',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody4,
+	        'foot': EnemyFoot4,
+	        'name': 'MilitiaHead',
+	        'HP': 20,
+	        'speed': 6,
+	        'scale': 1.05,
+	        'rightArm': 'crossGrenade',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody5,
+	        'foot': EnemyFoot5,
+	        'name': 'Ninja',
+	        'HP': 20,
+	        'speed': 8,
+	        'scale': 1,
+	        'rightArm': 'fasterShortSword',
+	        'leftArm': 'redShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody6,
+	        'foot': EnemyFoot6,
+	        'name': 'Barbarian',
+	        'HP': 30,
+	        'speed': 5,
+	        'scale': 1.1,
+	        'rightArm': 'handAxe',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody7,
+	        'foot': EnemyFoot7,
+	        'name': 'TannedBarbarian',
+	        'HP': 40,
+	        'speed': 6,
+	        'scale': 1.15,
+	        'rightArm': 'crossGrenade',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody8,
+	        'foot': EnemyFoot8,
+	        'name': 'BlueGuard',
+	        'HP': 60,
+	        'speed': 5,
+	        'scale': 1.2,
+	        'rightArm': 'grenade2x',
+	        'leftArm': 'blueShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody1_128,
+	        'foot': EnemyFoot1_128,
+	        'name': 'Spider',
+	        'HP': 80,
+	        'speed': 6,
+	        'scale': 1.4,
+	        'rightArm': 'crossBombTimer2x',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody2_128,
+	        'foot': EnemyFoot2_128,
+	        'name': 'Minotaur',
+	        'HP': 255,
+	        'speed': 5,
+	        'scale': 1.5,
+	        'rightArm': 'broadSword',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    }
+	];
+}
