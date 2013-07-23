@@ -134,7 +134,7 @@ function Start () {
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
     	
-    	var enemyData:Hashtable = enemyData[Mathf.CeilToInt(Random.value * enemyData.Length) - 1]; 
+    	var enemyData:Hashtable = enemyData[0]; 
     	createEnemy(enemyData, enemy);
     }
     createDownStair();
