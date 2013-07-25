@@ -128,13 +128,15 @@ function Start () {
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
      
+	var floorBonus = Mathf.FloorToInt(_floorNumber / 3);     
     var enemyNum:int = Mathf.RoundToInt(Mathf.Min(20, (_floorNumber + 1) / 2 + Random.value * _floorNumber));
     for(var e0 =0; e0 < enemyNum; e0++) {
     	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 2.0, tempY), Quaternion.identity);
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
     	
-    	var enemyData:Hashtable = enemyData[0]; 
+    	var enemyIndex = Mathf.FloorToInt(Random.value * 2.5) + Mathf.Min(floorBonus, enemyData.Length);
+    	var enemyData:Hashtable = enemyData[enemyIndex]; 
     	createEnemy(enemyData, enemy);
     }
     createDownStair();
@@ -153,8 +155,6 @@ public function createEnemy(data:Hashtable, enemy:BaseCharacter) {
 	if (data.ContainsKey("body")) { 
     	var body = enemy.GetComponentInChildren(BodyAnimation);
     	var matBody:Material = data["body"];
-    	Debug.Log(matBody);
-    	Debug.Log(EnemyBody1);
 		body.renderer.material = matBody;
     } 
     
@@ -451,6 +451,32 @@ function loadMasterData(){
 	        'speed': 5,
 	        'scale': 1.0,
 	        'rightArm': 'grenade',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 10,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'grenade',
+	        'leftArm': 'woodenShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 10,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'bombTimer',
 	        'leftArm': 'woodenShield',
 	       	'dropItems': {
 	                'aidBox': 5
@@ -460,11 +486,37 @@ function loadMasterData(){
 	        'body': EnemyBody2,
 	        'foot': EnemyFoot2,
 	        'name': 'SilverGuard',
-	        'HP': 50,
+	        'HP': 30,
 	        'speed': 4,
-	        'scale': 1.1,
+	        'scale': 1.0,
 	        'rightArm': 'grenade',
-	        'leftArm': 'ironShield',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 10,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'crossGrenade',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 10,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'crossBombTimer',
+	        'leftArm': null,
 	       	'dropItems': {
 	                'aidBox': 5
 	        }
@@ -483,13 +535,39 @@ function loadMasterData(){
 	        }
 	    },
 	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 25,
+	        'speed': 6,
+	        'scale': 1.0,
+	        'rightArm': 'bombTimer2x',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody1,
+	        'foot': EnemyFoot1,
+	        'name': 'Militia',
+	        'HP': 25,
+	        'speed': 6,
+	        'scale': 1.0,
+	        'rightArm': 'crossGrenade',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
 	        'body': EnemyBody4,
 	        'foot': EnemyFoot4,
 	        'name': 'MilitiaHead',
 	        'HP': 20,
 	        'speed': 6,
 	        'scale': 1.05,
-	        'rightArm': 'crossGrenade',
+	        'rightArm': 'grenade2x',
 	        'leftArm': null,
 	       	'dropItems': {
 	                'aidBox': 5
@@ -504,6 +582,32 @@ function loadMasterData(){
 	        'scale': 1,
 	        'rightArm': 'fasterShortSword',
 	        'leftArm': 'redShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody5,
+	        'foot': EnemyFoot5,
+	        'name': 'Ninja',
+	        'HP': 20,
+	        'speed': 8,
+	        'scale': 1,
+	        'rightArm': 'katana',
+	        'leftArm': 'redShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    }, 
+	    {
+	        'body': EnemyBody2,
+	        'foot': EnemyFoot2,
+	        'name': 'SilverGuard',
+	        'HP': 50,
+	        'speed': 4,
+	        'scale': 1.1,
+	        'rightArm': 'grenade',
+	        'leftArm': 'ironShield',
 	       	'dropItems': {
 	                'aidBox': 5
 	        }

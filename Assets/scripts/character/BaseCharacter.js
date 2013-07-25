@@ -259,7 +259,7 @@ class BaseCharacter extends MonoBehaviour {
             		_this.equipRight(_this.itemThrownName); 
             		_this.itemThrownName = null;
             	}
-			}
+			} 
 			
 		    if (_this.isWalk) {
 		        _this.bodyAnim.isStopped = false; 
@@ -271,22 +271,24 @@ class BaseCharacter extends MonoBehaviour {
 		        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
 		        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
 		    } else if (_this.isAction) {
-		        if (_this.action == CharacterAction.DEFENCE_MOTION) {
-		            if (_this.bodyAnim.currentAnimationName != "defence") {
-		                _this.bodyAnim.gotoAndPlay("defence");
+		        if (_this.action == CharacterAction.DAMAGE) {  
+		            if (_this.bodyAnim.currentAnimationName != "damage") {
+		                _this.bodyAnim.gotoAndPlay("damage");
 		                _this.bodyAnim.onAnimationEnd = function () {
-		                    _this.vX = _this.vY = 0;
-		                    _this.action = CharacterAction.DEFENCE;
-		                    _this.bodyAnim.gotoAndStopFrame(_this.bodyAnim.currentAnimation[1]);
-		                    _this.bodyAnim.isStopped = true;
+		                	if(_this.damageLoop <= 1) {
+		                		_this.damageLoop = 0;
+		                    	_this.vX = _this.vY = 0;
+		                    	_this.action = CharacterAction.NONE;
+		                    } else {
+		                    	_this.damageLoop--;
+		                    }
 		                };
-		            } 
-		            if (!frameWaited) {
-		            	_this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * - 0.1;
-		            	_this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * - 0.1; 
+		                if ( _this.damageLoop == 0 ) {
+			                _this.damageLoop = Mathf.CeilToInt(Random.value * 2);
+			                StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
+			                StageInitiator.playSound("hit");
+		                }
 		            }
-		        } else if (_this.action == CharacterAction.DEFENCE) {
-		
 		        } else if (_this.action == CharacterAction.PARRIED) {
 		            if (_this.bodyAnim.currentAnimationName != "parried") {
 		                _this.bodyAnim.gotoAndPlay("parried");
@@ -304,30 +306,13 @@ class BaseCharacter extends MonoBehaviour {
 		                        _this.bodyAnim.gotoAndPlay("parried");
 		                    }
 		                };
-		                StageInitiator.playSound("parried");
-		            }
-		            _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -1;
-		            _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -1;
-		        } else if (_this.action == CharacterAction.DAMAGE) {
-		            if (_this.bodyAnim.currentAnimationName != "damage") {
-		                _this.bodyAnim.gotoAndPlay("damage");
-		                _this.bodyAnim.onAnimationEnd = function () {
-		                	if(_this.damageLoop <= 1) {
-		                		_this.damageLoop = 0;
-		                    	_this.vX = _this.vY = 0;
-		                    	_this.action = CharacterAction.NONE;
-		                    } else {
-		                    	_this.damageLoop--;
-		                    }
-		                };
-		                if( _this.damageLoop == 0 ) {
-			                _this.damageLoop = Mathf.RoundToInt(Random.value * 2) + 2;
-			                StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
-			                StageInitiator.playSound("hit");
-		                }
+		            } 
+		            if (!frameWaited) {
+		            	_this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.05;
+		            	_this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.05; 
 		            }
 		        } else if (_this.action == CharacterAction.DEAD) {
-		            var size = transform.lossyScale.z * 2;
+		            var size = transform.lossyScale.z * 4;
 		            var half = size / 2;
 		            for (var i = 0; i < 8; i++) {
 		                StageInitiator.addEffect(_this.x() + Random.value * size - half, _this.y() + Random.value * size - half, "dead");
@@ -335,10 +320,25 @@ class BaseCharacter extends MonoBehaviour {
 		            StageInitiator.playSound("defeat");
 		            _this.context.removeCharacter(_this);
 		            Destroy(_this.gameObject);
+		        } else if (_this.action == CharacterAction.DEFENCE_MOTION) {
+		            if (_this.bodyAnim.currentAnimationName != "defence") {
+		                _this.bodyAnim.gotoAndPlay("defence");
+		                _this.bodyAnim.onAnimationEnd = function () {
+		                    _this.vX = _this.vY = 0;
+		                    _this.action = CharacterAction.DEFENCE;
+		                    _this.bodyAnim.gotoAndStopFrame(_this.bodyAnim.currentAnimation[1]);
+		                };
+		            } 
+		            if (!frameWaited) {
+		            	_this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * - 0.1;
+		            	_this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * - 0.1; 
+		            }
+		        } else if (_this.action == CharacterAction.DEFENCE) {
+		
 		        } else if (_this.action == CharacterAction.ATTACK) {
 		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame; 
 		 			if ((_this.bodyAnim.currentAnimationName == null)
-		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) {
+		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) { 
 		                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
 		                	if (_this.isPlayer){
 		                		_this.prepareThrowWeaponByAxis(_this.axisX, _this.axisY);
@@ -393,9 +393,9 @@ class BaseCharacter extends MonoBehaviour {
 			            if (_this.currentFrame < 10) {
 			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.1;
 			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.1;
-			            } else if (_this.currentFrame > 12) {
-			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.15;
-			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.15;
+			            } else if (_this.currentFrame > 13) {
+			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.2;
+			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.2;
 			            } else {
 			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * 0.15;
 			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * 0.15;
@@ -454,59 +454,63 @@ class BaseCharacter extends MonoBehaviour {
 		        _this.bodyAnim.isStopped = true;
 		    } 
 		    
-		    for (var other:BaseCharacter in context.characters) {
-		    	if(other.stateId == this.stateId) {
-		    		continue;
-		    	}    	
-		    	var deltaX = other.x() - x();
-                var deltaY = other.y() - y();
-                var range = _this.transform.lossyScale.z * 2 + other.transform.lossyScale.z * 2;
-                var collisionRange = range * 0.6;
-                var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
-                var theta = Mathf.Atan2(deltaY, deltaX);
-                var angleForOther = (theta * 180 / Mathf.PI) - _this.direction;
-                angleForOther = AppContext.fixAngle(angleForOther);
-                var angleForObj = (theta * 180 / Mathf.PI) - 180 - other.direction;
-                angleForObj = AppContext.fixAngle(angleForObj);
-
-                if (_this.teamNumber != other.teamNumber
-                    && _this.isAction && !_this.isWalk
-                    && (_this.action == CharacterAction.ATTACK)
-                    && (_this.attackFrame > 2)
-                    && (_this.rightArm != null)) {
-                    var weaponRange = 0;
-                    var weaponPoint = 0;
-                    if (_this.rightArm.type == BaseItem.TYPE_SWORD) {
-                        weaponRange = _this.rightArm.range * BaseItem.PIXEL_SCALE;
-                        weaponPoint = _this.rightArm.bonusPoint;
-                    }
-				
-                    if ((distance < range + weaponRange)
-                        && ((angleForOther > -20) && (angleForOther < 80))) {
-                        // right
-                        var kickBackRange = -1 * Random.value;
-                        if ((other.isAction && (other.action == CharacterAction.DEFENCE)
-                            && (other.leftArm != null && other.leftArm.type == BaseItem.TYPE_SHIELD))
-                            && ((angleForObj > -30) && (angleForObj < 30))) {
-                            _this.vX -= Mathf.Cos(theta) * kickBackRange;
-                            _this.vY -= Mathf.Sin(theta) * kickBackRange;
-                            _this.isAction = true;
-                            _this.action = CharacterAction.PARRIED;
-                            _this.parriedCount = 1;
-                            other.leftArm.onUse(other, _this);
-                        } else if (!other.isAction || (other.action != CharacterAction.DAMAGE)) {
-                            other.vX -= Mathf.Cos(theta) * kickBackRange;
-                            other.vY -= Mathf.Sin(theta) * kickBackRange;
-                            other.isAction = true;
-                            other.action = CharacterAction.DAMAGE;
-                            other.HP -= Mathf.CeilToInt(weaponPoint * (Random.value * 0.20 + 1));
-                            //ToDo
-                            //if ((_this.playData != null) && (other == _this.player)) {
-                                //_this.playData.enemy = _this;
-                            //}
-                        }
-                    }
-                }
+		    if (!_this.frameWaited){ 
+			    for (var other:BaseCharacter in context.characters) {
+			    	if(other.stateId == this.stateId) {
+			    		continue;
+			    	}    	
+			    	var deltaX = other.x() - x();
+	                var deltaY = other.y() - y();
+	                var range = _this.transform.lossyScale.z * 2 + other.transform.lossyScale.z * 2;
+	                var collisionRange = range * 0.6;
+	                var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+	                var theta = Mathf.Atan2(deltaY, deltaX);
+	                var angleForOther = (theta * 180 / Mathf.PI) - _this.direction;
+	                angleForOther = AppContext.fixAngle(angleForOther);
+	                var angleForObj = (theta * 180 / Mathf.PI) - 180 - other.direction;
+	                angleForObj = AppContext.fixAngle(angleForObj);
+	
+	                if (_this.teamNumber != other.teamNumber
+	                    && _this.isAction && !_this.isWalk
+	                    && (_this.action == CharacterAction.ATTACK)
+	                    && (_this.attackFrame >= 2)
+	                    && (_this.rightArm != null)) { 
+	                    
+	                    var weaponRange = 0;
+	                    var weaponPoint = 0;
+	                    if (_this.rightArm.type == BaseItem.TYPE_SWORD) {
+	                        weaponRange = _this.rightArm.range * BaseItem.PIXEL_SCALE;
+	                        weaponPoint = _this.rightArm.bonusPoint;
+	                    }
+					
+	                    if ((distance < range + weaponRange)
+	                        && ((angleForOther > -80) && (angleForOther < 30))) {
+	                        // right
+	                        var kickBackRange = -1 * Random.value;
+	                        if ((other.isAction && (other.action == CharacterAction.DEFENCE)
+	                            && (other.leftArm != null && other.leftArm.type == BaseItem.TYPE_SHIELD))
+	                            && ((angleForObj > -45) && (angleForObj < 45))) {
+	                            _this.vX -= Mathf.Cos(theta) * kickBackRange;
+	                            _this.vY -= Mathf.Sin(theta) * kickBackRange; 
+	                            _this.isAction = true;
+	                            _this.action = CharacterAction.PARRIED;
+	                            _this.parriedCount = 1; 
+	                            StageInitiator.playSound("parried"); 
+	                            other.leftArm.onUse(other, _this);
+	                        } else if (!other.isAction || (other.action != CharacterAction.DAMAGE)) {
+	                            other.vX -= Mathf.Cos(theta) * kickBackRange;
+	                            other.vY -= Mathf.Sin(theta) * kickBackRange; 
+	                            other.isAction = true;
+	                            other.action = CharacterAction.DAMAGE; 
+	                            other.HP -= Mathf.CeilToInt(weaponPoint * (Random.value * 0.20 + 1));                            
+	                            //ToDo
+	                            //if ((_this.playData != null) && (other == _this.player)) {
+	                                //_this.playData.enemy = _this;
+	                            //}
+	                        }
+	                    }
+	                }
+			    }
 		    }
 		
 			var maxFrame = _this.bodyAnim.numX * _this.bodyAnim.numY / 2;

@@ -90,6 +90,10 @@ class AppContext {
     }
     
     static function fixAngle(theta:float) {
-    	return theta % 360;
+    	var result = theta % 360;
+    	if( result > 180 ){
+    		result -= 360;
+    	}
+    	return result;
     }
 }

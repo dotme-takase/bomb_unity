@@ -3,6 +3,7 @@ class AnimationContainer {
 	var numX = 1; //number of x frames
 	var numY = 1; //number of y frames
 	var currentFrame:int = 0;
+	var stopFrame:int = 0;
 	var currentAnimationFrame:int = 0;
 	var currentAnimation = [0, 0];
 	var currentAnimationName:String = "";
@@ -35,6 +36,7 @@ class AnimationContainer {
 				}
 				this.currentAnimationFrame = Mathf.RoundToInt((Time.time - this.tempTime) * (this.fps)) % (size + 1); 				
 			} else {  
+				this.currentFrame = this.stopFrame;
 				isLooping = false;
 			} 
 			
@@ -50,7 +52,9 @@ class AnimationContainer {
 			}
 			
 			this.beforeDraw();
-			this.currentFrame = this.currentAnimationFrame + start; 	
+			if (this.currentAnimationName != null) {  
+				this.currentFrame = this.currentAnimationFrame + start; 	
+			} 
 		}
 	};
 	
@@ -80,21 +84,25 @@ class AnimationContainer {
 	var gotoAndPlay = function(name:String){
 		this.setAnimation(name);
 		this.isStopped = false;
+		this.stopFrame = 0;
 	};
 	
 	var gotoAndPlayFrame = function(frame:int){
 		this.setCurrentFrame(frame);
 		this.isStopped = false;
+		this.stopFrame = 0;
 	};
 	
 	var gotoAndStop = function(name:String){
 		this.setAnimation(name);
 		this.isStopped = true;
+		this.stopFrame = this.currentFrame;
 	};
 	
 	var gotoAndStopFrame = function(frame:int){
 		this.setCurrentFrame(frame);
 		this.isStopped = true;
+		this.stopFrame = this.currentFrame;
 	};
 	
 	static var clone = function (_this : AnimationContainer) {

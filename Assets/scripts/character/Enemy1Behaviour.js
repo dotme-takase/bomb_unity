@@ -173,7 +173,11 @@ class Enemy1Behaviour extends BaseCharacter {
                         character.isWalk = false;
                         character.isAction = true;
                         character.action = CharacterAction.DEFENCE_MOTION;
-                        character.aiWait = Mathf.Max((10 - character.speed) + Mathf.RoundToInt(dice), 0);
+                        var wait = 5;
+                        if (character.rightArm && character.rightArm.isThrowWeapon()) {
+                        	wait = 2;
+                        }
+                        character.aiWait = Mathf.Max((10 - character.speed) + Mathf.RoundToInt(dice), 0) * wait;
                     } else {
                         if (character.isWalk) {
                             character.action = CharacterAction.NONE;
