@@ -1,6 +1,7 @@
 class PlayData {
 	var HP = 0;
 	var MHP = 0;
+	var itemThrownMaxCount = 1;
 	var rightArmName = null;
 	var leftArmName = null;
 	var floorNumber = 0;
@@ -25,6 +26,7 @@ class AppContext {
 			playData = new PlayData();
 			playData.floorNumber = 1;
 			if (player) {
+				player.equipRight("bombTimer");
 				player.onModifyData();
 			}
 		} else if(player){
@@ -36,6 +38,7 @@ class AppContext {
 			if(playData.leftArmName) {
 				player.equipLeft(playData.leftArmName);
 			}
+			player.itemThrownMaxCount = playData.itemThrownMaxCount;
 		}
 	}
 	

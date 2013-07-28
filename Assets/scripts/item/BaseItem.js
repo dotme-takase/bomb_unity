@@ -14,6 +14,8 @@ class BaseItem extends MonoBehaviour{
     var thrownMaxCount:int = 1;
     var itemName:String = "";
 	var stopFlag = false;
+	var dropFlag = false;
+	var damagedStateId = new Array();
 	
     function initialize(options:Hashtable) { 
     	if (options.ContainsKey("HP")) { 
@@ -58,6 +60,10 @@ class BaseItem extends MonoBehaviour{
     		 this.frame = 0;
     	}
     	
+    	if (options.ContainsKey("onUse")) { 
+    		 this.onUse = options["onUse"];
+    	}
+    	
     	this.thrownMaxCount = 1;
     }
 
@@ -76,15 +82,16 @@ class BaseItem extends MonoBehaviour{
  	public static final var SHIELDS_NUM_X:float = 16;
  	public static final var SHIELDS_NUM_Y:float = 2;
   
-  	public static final var ITEMS_NUM_X:int = 16;
- 	public static final var ITEMS_NUM_Y:int = 2;
+  	public static final var ITEMS_NUM_X:float = 16;
+ 	public static final var ITEMS_NUM_Y:float = 2;
   
     var onPick = function (character:BaseCharacter) {
         var _this:BaseItem = this; 
-        var context = AppContext.getInstance();
+        var context = AppContext.getInstance(); 
         
         if(_this.type == BaseItem.TYPE_SWORD
         || _this.type == BaseItem.TYPE_BOMB
+        || _this.type == BaseItem.TYPE_BOMB_TIMER
         || _this.type == BaseItem.TYPE_BOMB_REMOTE) {
             StageInitiator.playSound("pickup");
             character.equipRight(_this.itemName);
@@ -138,12 +145,13 @@ class BaseItem extends MonoBehaviour{
 		return transform.position.z;
 	}
     
+    
     function bomb() { 
     	var context = AppContext.getInstance();
         if (this.type == BaseItem.TYPE_BOMB
             || this.type == BaseItem.TYPE_BOMB_REMOTE
             || this.type == BaseItem.TYPE_BOMB_TIMER) {
-            var damagedStateId = new Array();
+            damagedStateId = new Array();
             if (range2d.length == 2) { 
             	var _range2d:float[] = new float[2]; 
             	_range2d[0] = range2d[0] * PIXEL_SCALE;
@@ -162,11 +170,10 @@ class BaseItem extends MonoBehaviour{
                         	block = context.map[mapPoint.y, mapPoint.x]; 
                         }
                         if (block == null) {
-                            StageInitiator.addEffect(bX, bY, "bomb");
-                            for (var other in context.characters) {
-                                if (!other.isPlayer && (this.useCharacter.stateId == other.stateId)){
-                                	continue;
-                                } 
+                            var effect = StageInitiator.addEffect(bX, bY, "bomb");
+                            effect.triggerMaxAnimationFrame = 2;
+                            effect.onTrigger = function(other:BaseObject) {
+                            	Debug.Log(other.stateId);
                                 var contains = false;
                                 for(var _stateId in damagedStateId) {
                                 	if( other.stateId == _stateId ) { 
@@ -175,31 +182,36 @@ class BaseItem extends MonoBehaviour{
                                 	} 
                                 }
                                 if (!contains) {
+                                	damagedStateId.Add(other.stateId);
                                     var deltaX = other.x() - bX;
                                     var deltaY = other.y() - bY;
                                     var range = (other.transform.lossyScale.z) * 4;
-                                    var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
-                                    if (distance <= range) {
-                                        var theta = Mathf.Atan2((other.y() - this.y()), (other.x() - this.x()));
-                                        var angleForObj = (theta * 180 / Mathf.PI) - 180 - other.direction;
+
+									var otherCharacter = other as BaseCharacter;
+									if(otherCharacter){
+										if (!otherCharacter.isPlayer && (this.useCharacter.teamNumber == otherCharacter.teamNumber)){
+		                                	return;
+		                                } 
+                                        var theta = Mathf.Atan2((otherCharacter.y() - effect.y()), (otherCharacter.x() - effect.x()));
+                                        var angleForObj = (theta * 180 / Mathf.PI) - 180 - otherCharacter.direction;
                                         angleForObj = AppContext.fixAngle(angleForObj);
-                                        if ((other.isAction && (other.action == CharacterAction.DEFENCE)
-                                            && (other.leftArm != null && other.leftArm.type == BaseItem.TYPE_SHIELD))
+                                        if ((otherCharacter.isAction && (otherCharacter.action == CharacterAction.DEFENCE)
+                                            && (otherCharacter.leftArm != null && otherCharacter.leftArm.type == BaseItem.TYPE_SHIELD))
                                             && ((angleForObj > -30) && (angleForObj < 30))) {
-                                            other.leftArm.onUse(this.useCharacter, other);
-                                        } else if (!other.isAction || (other.action != CharacterAction.DAMAGE)) {
+                                            otherCharacter.leftArm.onUse(this.useCharacter, otherCharacter);
+                                        } else if (!otherCharacter.isAction || (otherCharacter.action != CharacterAction.DAMAGE)) {
                                             var kickBackRange = -1 * Random.value * range / 4;
-                                            other.vX -= Mathf.Cos(theta) * kickBackRange;
-                                            other.vY -= Mathf.Sin(theta) * kickBackRange;
-                                            other.isAction = true;
-                                            other.action = CharacterAction.DAMAGE;
-                                            other.HP -= Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1));
-											 
-											//ToDo
+                                            otherCharacter.vX -= Mathf.Cos(theta) * kickBackRange;
+                                            otherCharacter.vY -= Mathf.Sin(theta) * kickBackRange;
+                                            otherCharacter.isAction = true;
+                                            otherCharacter.action = CharacterAction.DAMAGE;
+                                            otherCharacter.HP -= Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1));
                                         }
-                                    }
+									} else {
+										other.HP -= Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1));
+									}
                                 }
-                            }
+                            };
                         } else {
                             //break;
                         }
@@ -238,4 +250,13 @@ class BaseItem extends MonoBehaviour{
     		}
     	}
     }
+    
+    function OnTriggerEnter (other : Collider) { 
+		if( dropFlag ){ 
+			var player = other.gameObject.GetComponent('PlayerBehaviour'); 
+			if (player) {
+				onPick(player);
+			}
+		}
+	}
 }

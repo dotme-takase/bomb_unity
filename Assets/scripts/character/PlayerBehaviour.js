@@ -13,15 +13,18 @@ class PlayerBehaviour extends BaseCharacter {
 		var context:AppContext = AppContext.getInstance();
 		if(this.HP <= 0) {
 			context.playData = null;
-			Application.LoadLevel('plane');
-			
+			StageInitiator.fadeOut(3, function(){
+				Application.LoadLevel('title');
+			});
 		} else if (context && context.playData) {
 			context.playData.HP = this.HP;
-			context.playData.MHP = this.MHP;
+			context.playData.MHP = this.MHP; 
+			context.playData.itemThrownMaxCount = this.itemThrownMaxCount; 
+			
 			if(this.rightArm) {
 				context.playData.rightArmName = this.rightArm.itemName;
 			} else {
-				context.playData.rightArmName = null;
+				context.playData.rightArmName = this.itemThrownName;
 			}
 			if(this.leftArm) {
 				context.playData.leftArmName = this.leftArm.itemName;
@@ -36,8 +39,6 @@ class PlayerBehaviour extends BaseCharacter {
 		this.teamNumber = 1;
 		this.MHP = this.HP = 100;
 		this.speed = 10;
-		this.equipRight("bombTimer");
-		this.equipLeft("woodenShield");
 		this.isPlayer = true;
 		var context:AppContext = AppContext.getInstance();
 		context.player = this;
@@ -63,7 +64,7 @@ class PlayerBehaviour extends BaseCharacter {
 		     || touch.phase == TouchPhase.Canceled){ 
 		    	if(clickDuration > 0){ 
 		     		isMouseClick = true; 
-		     		doubleDownDuration = duration;
+		     		doubleDownDuration = 3;
 		     		if (isMouseDoubleDown) { 
 		     			isMouseDoubleClick = true;
 		     		}
@@ -84,7 +85,7 @@ class PlayerBehaviour extends BaseCharacter {
 		    } else if(Input.GetMouseButtonUp(0)) { 
 		     	if(clickDuration > 0){ 
 		     		isMouseClick = true; 
-		     		doubleDownDuration = duration;
+		     		doubleDownDuration = 3;
 		     		if (isMouseDoubleDown) { 
 		     			isMouseDoubleClick = true;
 		     		}
@@ -113,10 +114,16 @@ class PlayerBehaviour extends BaseCharacter {
             if (context.downStairPoint != null
             	 && (context.downStairPoint.x == mapPoint.x)
             	 && (context.downStairPoint.y == mapPoint.y)) {
-            	 context.playData.floorNumber++;
-            	 this.HP = this.MHP;
-            	 this.onModifyData();
-            	 Application.LoadLevel('plane');
+				if(!context.isLoading) {
+	            	context.playData.floorNumber++;
+	            	this.HP = this.MHP;
+	            	this.onModifyData();
+	            	StageInitiator.playSound("downstair");
+	            	StageInitiator.fadeOut(0.5, function(){
+						Application.LoadLevel('dungeon');
+					});
+					context.isLoading = true;
+				}
             }
 		}
 	}

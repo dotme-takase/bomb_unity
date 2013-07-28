@@ -23,6 +23,14 @@ class EffectAnimation extends TextureAnimation {
 		_position = transform.position;
 	}
 	
+    function x() {
+		return transform.position.x;
+	}
+	
+	function y() {
+		return transform.position.z;
+	}
+	
 	function Update(){
 		if(ac){
 			ac.tick();
@@ -35,10 +43,21 @@ class EffectAnimation extends TextureAnimation {
 			
 			var v:Vector3 = Camera.main.transform.position - transform.position;
 	        v.x = v.z = 0.0;
-	        transform.LookAt(Camera.main.transform.position - v); 
-	        
-	         
+	        transform.LookAt(Camera.main.transform.position - v);     
         }
 		super.Update();
+	}
+	
+	var onTrigger = function(other:BaseObject){};
+	var triggerMaxAnimationFrame = 0;
+	function OnTriggerEnter (collider : Collider) { 
+		if(ac) {
+			if(triggerMaxAnimationFrame <= 0 || triggerMaxAnimationFrame >= ac.currentAnimationFrame) {
+				var other = collider.gameObject.GetComponent('BaseObject'); 
+				if (other) {
+					onTrigger(other);
+				}
+			}
+		}
 	}
 }

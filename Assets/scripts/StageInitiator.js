@@ -1,3 +1,7 @@
+static final var FADE_NONE = 0;
+static final var FADE_IN = 1;
+static final var FADE_OUT = 2;
+
 var Player:GameObject;
 var Enemy1:GameObject;
 
@@ -5,11 +9,14 @@ var Wall:GameObject;
 var Pillar:GameObject;
 var Floor:GameObject;
 var DownStair:GameObject; 
+var WoodenBox:GameObject;
 var mapChipDownStair:GameObject;
+
 
 var Sword:GameObject;
 var Shield:GameObject;
 var Thrown:GameObject;
+var OtherItem:GameObject;
 
 var Effect:GameObject;
 
@@ -46,8 +53,60 @@ var EnemyBody2_128:Material;
 var EnemyFoot2_128:Material;  
  
 var context = AppContext.getInstance();
+var fadeCallback = function(){};
+var fadeCountMax:float = 0;
+var fadeCount:float = 0;
+var fadeMode = FADE_NONE;
+var blackTexture:Texture2D = null;
 
-function Start () {
+function OnGUI () { 
+	if (!blackTexture) { 
+		blackTexture=new Texture2D(32, 32, TextureFormat.RGB24, false);
+		blackTexture.ReadPixels(Rect(0, 0, 32, 32), 0, 0, false);
+		blackTexture.SetPixel(0, 0, Color.white);
+		blackTexture.Apply();
+	}
+	
+	if(fadeMode == FADE_IN) {
+		fadeCount -= Time.deltaTime;
+		GUI.color = new Color(0, 0, 0, fadeCount / fadeCountMax);
+		GUI.DrawTexture( new Rect(0, 0, Screen.width, Screen.height ), blackTexture );   
+		if(fadeCount <= 0.0) { 
+			fadeMode = FADE_NONE;
+			if (fadeCallback) { 
+				fadeCallback();
+				fadeCallback = function(){};
+			}
+		}
+	} else if(fadeMode == FADE_OUT) {
+		fadeCount -= Time.deltaTime;
+		GUI.color = new Color(0, 0, 0, (fadeCountMax - fadeCount) / fadeCountMax);
+		GUI.DrawTexture( new Rect(0, 0, Screen.width, Screen.height ), blackTexture );   
+		if(fadeCount <= 0.0) { 
+			if (fadeCallback) { 
+				fadeCallback();
+				fadeCallback = function(){};
+			}
+		}
+	}
+}
+
+static function fadeIn(duration, callback){ 
+	var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
+	initiator.fadeCallback = callback;
+	initiator.fadeCountMax = initiator.fadeCount = duration;
+	initiator.fadeMode = FADE_IN;
+}
+
+static function fadeOut(duration, callback){ 
+	var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
+	initiator.fadeCallback = callback;
+	initiator.fadeCountMax = initiator.fadeCount = duration;
+	initiator.fadeMode = FADE_OUT;
+}
+
+function Start () { 
+	StageInitiator.fadeIn(1, null);
 	loadMasterData();
 	var generator = new MapGenerator(); 
 	var _floorNumber = 1; 
@@ -76,9 +135,13 @@ function Start () {
 	        	tempY = y * tileSize;
 	        	var floorObject:GameObject = Instantiate (Floor, Vector3(x * tileSize, -0.5, y * tileSize)
 	        		, Quaternion.identity);
-	        		
-	        	_floorList.push(Vector2(x, y));
-	        	_floorObjectList.push(floorObject);
+	        	if ( Mathf.FloorToInt(Random.value * 100)  < 10 ) {
+	        		var boxObject:GameObject = Instantiate (WoodenBox, Vector3(x * tileSize, 2.5, y * tileSize)
+	        		, Quaternion.identity);
+	        	} else {
+		        	_floorList.push(Vector2(x, y));
+		        	_floorObjectList.push(floorObject);
+	        	}
 	        } else {
 		        if ((chip == "w1_t1") || (chip == "w1_tr2") || (chip == "w1_tl2")) { 
 		        	Instantiate (Wall, Vector3(x * tileSize, 5, y * tileSize + wallOffset)
@@ -125,6 +188,8 @@ function Start () {
 	context.floorObjectList = _floorObjectList.ToBuiltin(GameObject);
 	
     var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 2.0, tempY), Quaternion.identity);
+    var player = playerInstance.GetComponent(PlayerBehaviour);
+    context.warpToRandom(player);
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
     camera.target = playerInstance.GetComponent(PlayerBehaviour).transform;
      
@@ -184,6 +249,10 @@ public function createEnemy(data:Hashtable, enemy:BaseCharacter) {
     if (data.ContainsKey("leftArm") && (data["leftArm"] != null)) { 
     	enemy.equipLeft(data["leftArm"]);
     } 
+    
+    if (data.ContainsKey("dropItems") && (data["dropItems"] != null)) { 
+    	enemy.dropList = data["dropItems"]; 
+    } 
 }
 
 public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable) {
@@ -195,10 +264,12 @@ public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable
 		
 	} else if (type == BaseItem.TYPE_SHIELD) {
 		object = Instantiate (Shield, Vector3(x, 0.0, y), Quaternion.identity);
-	} else if (type == BaseItem.TYPE_BOMB
+	} else if (forEquip && (type == BaseItem.TYPE_BOMB
                || type == BaseItem.TYPE_BOMB_REMOTE
-               || type == BaseItem.TYPE_BOMB_TIMER) {
+               || type == BaseItem.TYPE_BOMB_TIMER)) {
 		object = Instantiate (Thrown, Vector3(x, 0.0, y), Quaternion.identity);
+	} else {  
+		object = Instantiate (OtherItem, Vector3(x, 0.0, y), Quaternion.identity);
 	}
 	
 	if (object != null) {
@@ -215,7 +286,11 @@ public function createItem(x:float, y:float, forEquip:boolean, options:Hashtable
 			} 
 			offsetX = item.frame / BaseItem.SHIELDS_NUM_X;
 			item.renderer.material.SetTextureOffset ("_MainTex", Vector2(offsetX, offsetY)); 
-		}	 
+		} else { 
+			offsetX = item.frame / BaseItem.ITEMS_NUM_X; 
+			offsetY = (item.frame / BaseItem.ITEMS_NUM_X) / BaseItem.ITEMS_NUM_Y;
+			item.renderer.material.SetTextureOffset ("_MainTex", Vector2(offsetX, offsetY));
+		}
 		return item;
 	}
 	return null; 
@@ -235,11 +310,12 @@ public function addEffectDelegate(x:float, y:float, name: String){
 	var effectInstance = Instantiate (Effect, Vector3(x, 0.5, y), Quaternion.identity);
     var effect = effectInstance.GetComponent(EffectAnimation);
     effect.initialize(name);
+    return effect;
 }
 
 public static function addEffect(x:float, y:float, name: String){
 	var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);
-	initiator.addEffectDelegate(x, y, name);
+	return initiator.addEffectDelegate(x, y, name);
 }
 
 public function playSoundDelegate(name: String){
@@ -280,7 +356,10 @@ function createDownStair(){
     	
     	var pos:Vector3 = obj.transform.position;
     	Instantiate (DownStair, pos, Quaternion.identity);
-    	Destroy(obj); 
+    	Destroy(obj);   
+    	
+    	var boxObject:GameObject = Instantiate (WoodenBox, Vector3(pos.x, 2.5, pos.z)
+	        		, Quaternion.identity);
     	 
     	var oldChipObj = context.autoMap[context.downStairPoint.y, context.downStairPoint.x];
     	if (oldChipObj) {
@@ -383,59 +462,77 @@ public static var ITEMS = {
             character.HP += Mathf.Min(character.MHP - character.HP,
                 aid);
         },
+        "frame": 16
+    },
+    "thrownPlus": {
+        "type": BaseItem.TYPE_MISC,
+        "onUse": function (character:BaseCharacter, target:BaseCharacter) { 
+            StageInitiator.playSound("pickup");
+            if(character.rightArm && character.rightArm.isThrowWeapon()){ 
+            	character.itemThrownMaxCount = Mathf.Min (10, character.itemThrownMaxCount + 1);
+            }
+        },
         "frame": 0
     },
     "grenade": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [0, 1],
         "bonusPoint": 12,
-        "speed": 24
+        "speed": 24,
+        "frame": 1
     },
     "crossGrenade": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [64,4],
         "bonusPoint": 12,
-        "speed": 24
+        "speed": 24,
+        "frame": 1
     },
     "grenade2x": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [64,9],
         "bonusPoint": 24,
-        "speed": 24
+        "speed": 24,
+        "frame": 1
     },
     "crossGrenade2x": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [128,4],
         "bonusPoint": 20,
-        "speed": 24
+        "speed": 24,
+        "frame": 1
     },
     "bombTimer": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [32,6],
         "bonusPoint": 12,
         "speed": 24,
-        "leftTime": 20
+        "leftTime": 20,
+        "frame": 2
     },
     "crossBombTimer": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [64,4],
         "bonusPoint": 16,
         "speed": 32,
-        "leftTime": 20
+        "leftTime": 20,
+        "frame": 2
     },
     "bombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [96,9],
         "bonusPoint": 28,
         "speed": 32,
-        "leftTime": 20
+        "leftTime": 20,
+        "frame": 2
     },
     "crossBombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [160,4],
         "bonusPoint": 24,
         "speed": 32,
-        "leftTime": 20
+        "leftTime": 20,
+        "frame": 2
     }
 };
 
@@ -465,7 +562,9 @@ function loadMasterData(){
 	        'scale': 1.0,
 	        'rightArm': 'grenade',
 	        'leftArm': 'woodenShield',
-	       	'dropItems': {
+	       	'dropItems': { 
+	       			'grenade':3,
+	       			'woodenShield': 1,
 	                'aidBox': 5
 	        }
 	    },
@@ -479,7 +578,8 @@ function loadMasterData(){
 	        'rightArm': 'bombTimer',
 	        'leftArm': 'woodenShield',
 	       	'dropItems': {
-	                'aidBox': 5
+	       			'bombTimer': 8,
+	                'aidBox': 1
 	        }
 	    },
 	    {
@@ -492,7 +592,8 @@ function loadMasterData(){
 	        'rightArm': 'grenade',
 	        'leftArm': null,
 	       	'dropItems': {
-	                'aidBox': 5
+	       			'crossBombTimer':5,
+	                'thrownPlus': 3
 	        }
 	    },
 	    {
@@ -531,6 +632,8 @@ function loadMasterData(){
 	        'rightArm': 'katana',
 	        'leftArm': null,
 	       	'dropItems': {
+	       			'katana': 1,
+	       			'thrownPlus': 3,
 	                'aidBox': 5
 	        }
 	    },
