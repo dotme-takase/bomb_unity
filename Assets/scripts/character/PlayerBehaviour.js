@@ -77,13 +77,12 @@ class PlayerBehaviour extends BaseCharacter {
 		axisX = cursor.x; 
 		axisY = cursor.z; 
 		
-		Debug.Log(doubleDownDuration);
 		if(_isMouseDown){  
 	   		isMouseDown = true; 
 	   		if (doubleDownDuration > 0) {
 	   			var _distance:float = Mathf.Sqrt(Mathf.Pow(axisX - previousAxisX, 2) 
 	   											+ Mathf.Pow(axisY - previousAxisY, 2));
-	    		isMouseDoubleDown = (_distance < 0.01);
+	    		isMouseDoubleDown = (_distance < 4.0);
 	    	}
 	   		if (!isMouseClick) {
 	   			clickDuration = singleDuration;
