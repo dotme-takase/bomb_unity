@@ -4,10 +4,13 @@ class PlayerBehaviour extends BaseCharacter {
 	var isMouseClick = false;
 	var isMouseDoubleClick = false;
 	var isCursor = false;
-	var clickDuration = 0; 
-	var doubleDownDuration = 0;
-	var duration = 10;
-	var defenceCount = -1;
+	var clickDuration:float = 0; 
+	var doubleDownDuration:float = 0;
+	var singleDuration:float = 0.25; 
+	var doubleDuration:float = 0.15;
+	var defenceCount = -1; 
+	var previousAxisX = 0.0; 
+	var previousAxisY = 0.0;
 	
 	function onModifyData(){
 		var context:AppContext = AppContext.getInstance();
@@ -47,60 +50,59 @@ class PlayerBehaviour extends BaseCharacter {
 	
 	function Update () { 
 		var context:AppContext = AppContext.getInstance();
-		var cursor:Vector3;		 
+		var cursor:Vector3;	
+		var _isMouseDown = false;
+		var _isMouseUp = false;	 
 		if(Input.touches.Length > 0){
 		    var touch = Input.touches[0];
-		    cursor = touch.position;
-		    
+		    cursor = touch.position;	    
 		    if(touch.phase == TouchPhase.Began){
-		    	isMouseDown = true; 
-		    	if (doubleDownDuration > 0) { 
-		    		isMouseDoubleDown = true;
-		    	}
-		    	if (!isMouseClick) {
-		    		clickDuration = duration;
-		   		}
+		    	_isMouseDown = true; 
 		    } else if (touch.phase == TouchPhase.Ended
 		     || touch.phase == TouchPhase.Canceled){ 
-		    	if(clickDuration > 0){ 
-		     		isMouseClick = true; 
-		     		doubleDownDuration = 3;
-		     		if (isMouseDoubleDown) { 
-		     			isMouseDoubleClick = true;
-		     		}
-		     	} 
-		     	isMouseDoubleDown = isMouseDown = false; 
+		    	_isMouseUp = true;
 		    }
 		} else {
 			cursor = Input.mousePosition; 
-			
 			if(Input.GetMouseButtonDown(0)){  
-		   		isMouseDown = true; 
-		   		if (doubleDownDuration > 0) { 
-		    		isMouseDoubleDown = true;
-		    	}
-		   		if (!isMouseClick) {
-		   			clickDuration = duration;
-	 			}
-		    } else if(Input.GetMouseButtonUp(0)) { 
-		     	if(clickDuration > 0){ 
-		     		isMouseClick = true; 
-		     		doubleDownDuration = 3;
-		     		if (isMouseDoubleDown) { 
-		     			isMouseDoubleClick = true;
-		     		}
-		     	} 
-		     	isMouseDoubleDown = isMouseDown = false; 
+				_isMouseDown = true; 
+	 	    } else if(Input.GetMouseButtonUp(0)) { 
+		     	_isMouseUp = true;
 		    }
-		} 		
-		clickDuration = Mathf.Max(0, clickDuration - 1); 
-		doubleDownDuration = Mathf.Max(0, doubleDownDuration - 1);
-		
+		}
+		 
 		cursor.z = Camera.main.transform.position.y;
-		cursor = Camera.main.ScreenToWorldPoint(cursor) - transform.position; 
+		cursor = Camera.main.ScreenToWorldPoint(cursor) - transform.position;
 		
 		axisX = cursor.x; 
-		axisY = cursor.z;
+		axisY = cursor.z; 
+		
+		Debug.Log(doubleDownDuration);
+		if(_isMouseDown){  
+	   		isMouseDown = true; 
+	   		if (doubleDownDuration > 0) {
+	   			var _distance:float = Mathf.Sqrt(Mathf.Pow(axisX - previousAxisX, 2) 
+	   											+ Mathf.Pow(axisY - previousAxisY, 2));
+	    		isMouseDoubleDown = (_distance < 0.01);
+	    	}
+	   		if (!isMouseClick) {
+	   			clickDuration = singleDuration;
+ 			}
+		} else if(_isMouseUp) {  
+			previousAxisX = axisX;
+			previousAxisY = axisY;	
+	    	if(clickDuration > 0){ 
+	     		isMouseClick = true; 
+	     		doubleDownDuration = doubleDuration;
+	     		if (isMouseDoubleDown) { 
+	     			isMouseDoubleClick = true;
+	     		}
+	     	} 
+	     	isMouseDoubleDown = isMouseDown = false; 
+		} 
+		
+		clickDuration = Mathf.Max(0, clickDuration - Time.deltaTime); 
+		doubleDownDuration = Mathf.Max(0, doubleDownDuration - Time.deltaTime);
 		
 		inputAction();
 		isMouseClick = isMouseDoubleClick = false;

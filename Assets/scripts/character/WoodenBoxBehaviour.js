@@ -1,5 +1,6 @@
 class WoodenBoxBehaviour extends BaseObject {
 	function Start(){
+		this.stateId = AppContext.uuid();
 		this.MHP = this.HP = 1;
 	}
 	function die() {

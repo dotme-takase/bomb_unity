@@ -148,6 +148,8 @@ class BaseItem extends MonoBehaviour{
     
     function bomb() { 
     	var context = AppContext.getInstance();
+    	var itemX = x();
+    	var itemY = y();
         if (this.type == BaseItem.TYPE_BOMB
             || this.type == BaseItem.TYPE_BOMB_REMOTE
             || this.type == BaseItem.TYPE_BOMB_TIMER) {
@@ -173,7 +175,6 @@ class BaseItem extends MonoBehaviour{
                             var effect = StageInitiator.addEffect(bX, bY, "bomb");
                             effect.triggerMaxAnimationFrame = 2;
                             effect.onTrigger = function(other:BaseObject) {
-                            	Debug.Log(other.stateId);
                                 var contains = false;
                                 for(var _stateId in damagedStateId) {
                                 	if( other.stateId == _stateId ) { 
@@ -185,22 +186,26 @@ class BaseItem extends MonoBehaviour{
                                 	damagedStateId.Add(other.stateId);
                                     var deltaX = other.x() - bX;
                                     var deltaY = other.y() - bY;
-                                    var range = (other.transform.lossyScale.z) * 4;
+                                    var range = other.transform.lossyScale.z;
 
 									var otherCharacter = other as BaseCharacter;
 									if(otherCharacter){
 										if (!otherCharacter.isPlayer && (this.useCharacter.teamNumber == otherCharacter.teamNumber)){
 		                                	return;
 		                                } 
-                                        var theta = Mathf.Atan2((otherCharacter.y() - effect.y()), (otherCharacter.x() - effect.x()));
+		                                
+                                		var alphaX = otherCharacter.x() - Mathf.Cos(otherCharacter.direction * Mathf.PI / 180) * range / 2;
+                                		var alphaY = otherCharacter.y() - Mathf.Sin(otherCharacter.direction * Mathf.PI / 180) * range / 2;
+                                        
+                                        var theta = Mathf.Atan2((alphaY - itemY), (alphaX - itemX));
                                         var angleForObj = (theta * 180 / Mathf.PI) - 180 - otherCharacter.direction;
                                         angleForObj = AppContext.fixAngle(angleForObj);
                                         if ((otherCharacter.isAction && (otherCharacter.action == CharacterAction.DEFENCE)
                                             && (otherCharacter.leftArm != null && otherCharacter.leftArm.type == BaseItem.TYPE_SHIELD))
-                                            && ((angleForObj > -30) && (angleForObj < 30))) {
+                                            && ((angleForObj > -45) && (angleForObj < 45))) {
                                             otherCharacter.leftArm.onUse(this.useCharacter, otherCharacter);
                                         } else if (!otherCharacter.isAction || (otherCharacter.action != CharacterAction.DAMAGE)) {
-                                            var kickBackRange = -1 * Random.value * range / 4;
+                                            var kickBackRange = -1 * Random.value * range;
                                             otherCharacter.vX -= Mathf.Cos(theta) * kickBackRange;
                                             otherCharacter.vY -= Mathf.Sin(theta) * kickBackRange;
                                             otherCharacter.isAction = true;

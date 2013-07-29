@@ -27,6 +27,7 @@ class AppContext {
 			playData.floorNumber = 1;
 			if (player) {
 				player.equipRight("bombTimer");
+				player.equipLeft("bronzeShield");
 				player.onModifyData();
 			}
 		} else if(player){

@@ -1,6 +1,16 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/scripts/character/BaseObject.js">
+    <Files>
+      <File FileName="Assets/scripts/character/BaseObject.js" Line="27" Column="1" />
+      <File FileName="Assets/scripts/character/BaseCharacter.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/item/BaseItem.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/animation/EffectAnimation.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/StageInitiator.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/character/WoodenBoxBehaviour.js" Line="1" Column="1" />
+      <File FileName="Assets/scripts/animation/AnimationContainer.js" Line="1" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
