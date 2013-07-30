@@ -64,7 +64,11 @@ class BaseItem extends MonoBehaviour{
     		 this.onUse = options["onUse"];
     	}
     	
-    	this.thrownMaxCount = 1;
+    	if (options.ContainsKey("thrownMaxCount")) { 
+    		this.thrownMaxCount = options["thrownMaxCount"];
+    	} else {
+    		this.thrownMaxCount = 1;
+    	}
     }
 
     public static final var TYPE_SWORD = "sword";

@@ -136,7 +136,7 @@ function Start () {
 	        	var floorObject:GameObject = Instantiate (Floor, Vector3(x * tileSize, -0.5, y * tileSize)
 	        		, Quaternion.identity);
 	        	if ( Mathf.FloorToInt(Random.value * 100)  < 10 ) {
-	        		var boxObject:GameObject = Instantiate (WoodenBox, Vector3(x * tileSize, 2.5, y * tileSize)
+	        		var boxObject:GameObject = Instantiate (WoodenBox, Vector3(x * tileSize, 3.5, y * tileSize)
 	        		, Quaternion.identity);
 	        	} else {
 		        	_floorList.push(Vector2(x, y));
@@ -187,7 +187,7 @@ function Start () {
 	context.floorList = _floorList.ToBuiltin(Vector2); 
 	context.floorObjectList = _floorObjectList.ToBuiltin(GameObject);
 	
-    var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 2.0, tempY), Quaternion.identity);
+    var playerInstance:GameObject = Instantiate (Player, Vector3(tempX, 0.0, tempY), Quaternion.identity);
     var player = playerInstance.GetComponent(PlayerBehaviour);
     context.warpToRandom(player);
     var camera:CameraBehaviour = Camera.main.GetComponent(CameraBehaviour);
@@ -196,7 +196,7 @@ function Start () {
 	var floorBonus = Mathf.FloorToInt(_floorNumber / 3);     
     var enemyNum:int = Mathf.RoundToInt(Mathf.Min(20, (_floorNumber + 1) / 2 + Random.value * _floorNumber));
     for(var e0 =0; e0 < enemyNum; e0++) {
-    	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 2.0, tempY), Quaternion.identity);
+    	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 0.0, tempY), Quaternion.identity);
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
     	
@@ -358,7 +358,7 @@ function createDownStair(){
     	Instantiate (DownStair, pos, Quaternion.identity);
     	Destroy(obj);   
     	
-    	var boxObject:GameObject = Instantiate (WoodenBox, Vector3(pos.x, 2.5, pos.z)
+    	var boxObject:GameObject = Instantiate (WoodenBox, Vector3(pos.x, 3.5, pos.z)
 	        		, Quaternion.identity);
     	 
     	var oldChipObj = context.autoMap[context.downStairPoint.y, context.downStairPoint.x];
@@ -486,21 +486,21 @@ public static var ITEMS = {
         "range2d": [64,4],
         "bonusPoint": 12,
         "speed": 24,
-        "frame": 1
+        "frame": 3
     },
     "grenade2x": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [64,9],
         "bonusPoint": 24,
         "speed": 24,
-        "frame": 1
+        "frame": 5
     },
     "crossGrenade2x": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [128,4],
         "bonusPoint": 20,
         "speed": 24,
-        "frame": 1
+        "frame": 7
     },
     "bombTimer": {
         "type": BaseItem.TYPE_BOMB_TIMER,
@@ -516,23 +516,23 @@ public static var ITEMS = {
         "bonusPoint": 16,
         "speed": 32,
         "leftTime": 20,
-        "frame": 2
+        "frame": 4
     },
     "bombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [96,9],
         "bonusPoint": 28,
-        "speed": 32,
+        "speed": 28,
         "leftTime": 20,
-        "frame": 2
+        "frame": 6
     },
     "crossBombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [160,4],
         "bonusPoint": 24,
-        "speed": 32,
+        "speed": 42,
         "leftTime": 20,
-        "frame": 2
+        "frame": 8
     }
 };
 

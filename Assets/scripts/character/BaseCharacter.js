@@ -254,7 +254,7 @@ class BaseCharacter extends BaseObject {
 		            										  _this.transform.position.z,
 		            									  	 rateMap[k2], false); 
 		            dropItem.dropFlag = true; 
-		            dropItem.transform.position += Vector3.up * 1;
+		            dropItem.transform.position += Vector3.up * 2;
 	                break;
 	            }
 	        }
@@ -600,6 +600,7 @@ class BaseCharacter extends BaseObject {
              } 
              
 	    	 item.transform.parent = this.transform;
+	    	 this.itemThrownName = itemName;
 	    	 this.rightArm = item;
 	    }
 	}
