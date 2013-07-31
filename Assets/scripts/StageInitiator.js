@@ -620,6 +620,7 @@ function loadMasterData(){
 	        'rightArm': 'crossBombTimer',
 	        'leftArm': null,
 	       	'dropItems': {
+	       			'crossBombTimer':5,
 	                'aidBox': 5
 	        }
 	    },
@@ -662,7 +663,9 @@ function loadMasterData(){
 	        'rightArm': 'handAxe',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
-	                'aidBox': 5
+	       			'ironShield':5,
+	       			'thrownPlus': 3,
+	                'handAxe': 5
 	        }
 	    },
 	    {
@@ -675,7 +678,8 @@ function loadMasterData(){
 	        'rightArm': 'crossGrenade',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
-	                'aidBox': 5
+	       			'crossGrenade':5,
+	                'aidBox': 2
 	        }
 	    },
 	    {
@@ -688,6 +692,7 @@ function loadMasterData(){
 	        'rightArm': 'longSword',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
+	       			'ironShield':5,
 	                'aidBox': 5
 	        }
 	    },
@@ -730,7 +735,8 @@ function loadMasterData(){
 	        'rightArm': 'katana',
 	        'leftArm': 'redShield',
 	       	'dropItems': {
-	                'aidBox': 5
+	       			'thrownPlus': 3,
+	                'katana': 5
 	        }
 	    }, 
 	    {
@@ -743,6 +749,7 @@ function loadMasterData(){
 	        'rightArm': 'crossGrenade2x',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
+	       			'crossGrenade2x': 3,
 	                'aidBox': 5
 	        }
 	    },
@@ -756,6 +763,7 @@ function loadMasterData(){
 	        'rightArm': 'grenade2x',
 	        'leftArm': 'blueShield',
 	       	'dropItems': {
+	       			'grenade2x': 3,
 	                'aidBox': 5
 	        }
 	    },
@@ -769,6 +777,7 @@ function loadMasterData(){
 	        'rightArm': 'crossBombTimer2x',
 	        'leftArm': null,
 	       	'dropItems': {
+	       			'crossBombTimer2x': 3,
 	                'aidBox': 5
 	        }
 	    },
@@ -782,6 +791,7 @@ function loadMasterData(){
 	        'rightArm': 'broadSword',
 	        'leftArm': null,
 	       	'dropItems': {
+	       			'broadSword': 3,
 	                'aidBox': 5
 	        }
 	    }

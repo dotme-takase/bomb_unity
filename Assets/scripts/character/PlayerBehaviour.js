@@ -156,11 +156,14 @@ class PlayerBehaviour extends BaseCharacter {
 	                }
 	            } else { 
 	                _this.isAction = true;
-	                _this.action = CharacterAction.DEFENCE_MOTION; 
-	                if( _this.rightArm ){
-	                	_this.defenceCount = 8;
-	                } else {
-	                	_this.defenceCount = 0;
+	                if ((_this.bodyAnim.currentAnimationName == null)
+		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) {
+		                _this.action = CharacterAction.DEFENCE_MOTION; 
+		                if( _this.rightArm ){
+		                	_this.defenceCount = 8;
+		                } else {
+		                	_this.defenceCount = 0;
+		                }
 	                }
 	            }
 	        } else if (_this.isMouseDown) {

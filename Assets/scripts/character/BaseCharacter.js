@@ -361,8 +361,7 @@ class BaseCharacter extends BaseObject {
 		        } else if (_this.action == CharacterAction.ATTACK) {
 		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame; 
 		 			if ((_this.bodyAnim.currentAnimationName == null)
-		                || ((!_this.bodyAnim.currentAnimationName.Contains("attack"))
-		                && (!_this.bodyAnim.currentAnimationName.Contains("defence")))) { 
+		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) { 
 		                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
 		                	if (_this.isPlayer){
 		                		_this.prepareThrowWeaponByAxis(_this.axisX, _this.axisY);
