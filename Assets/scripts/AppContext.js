@@ -27,7 +27,6 @@ class AppContext {
 			playData.floorNumber = 1;
 			if (player) {
 				player.equipRight("bombTimer");
-				player.equipLeft("bronzeShield");
 				player.onModifyData();
 			}
 		} else if(player){
@@ -97,6 +96,8 @@ class AppContext {
     	var result = theta % 360;
     	if( result > 180 ){
     		result -= 360;
+    	} else if (result < -180) {
+    		result += 360;
     	}
     	return result;
     }

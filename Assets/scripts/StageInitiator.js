@@ -603,9 +603,10 @@ function loadMasterData(){
 	        'HP': 10,
 	        'speed': 5,
 	        'scale': 1.0,
-	        'rightArm': 'crossGrenade',
+	        'rightArm': 'fasterShortSword',
 	        'leftArm': null,
 	       	'dropItems': {
+	       			'fasterShortSword': 1,
 	                'aidBox': 5
 	        }
 	    },
@@ -644,7 +645,34 @@ function loadMasterData(){
 	        'HP': 25,
 	        'speed': 6,
 	        'scale': 1.0,
-	        'rightArm': 'bombTimer2x',
+	        'rightArm': 'crossGrenade',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	       			'crossGrenade':1,
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody6,
+	        'foot': EnemyFoot6,
+	        'name': 'Barbarian',
+	        'HP': 30,
+	        'speed': 5,
+	        'scale': 1.1,
+	        'rightArm': 'handAxe',
+	        'leftArm': 'ironShield',
+	       	'dropItems': {
+	                'aidBox': 5
+	        }
+	    },
+	    {
+	        'body': EnemyBody7,
+	        'foot': EnemyFoot7,
+	        'name': 'rustyGuard',
+	        'HP': 40,
+	        'speed': 6,
+	        'scale': 1.1,
+	        'rightArm': 'crossGrenade',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
 	                'aidBox': 5
@@ -657,7 +685,7 @@ function loadMasterData(){
 	        'HP': 25,
 	        'speed': 6,
 	        'scale': 1.0,
-	        'rightArm': 'crossGrenade',
+	        'rightArm': 'longSword',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
 	                'aidBox': 5
@@ -673,7 +701,8 @@ function loadMasterData(){
 	        'rightArm': 'grenade2x',
 	        'leftArm': null,
 	       	'dropItems': {
-	                'aidBox': 5
+	       			'grenade2x':1,
+	                'aidBox': 10
 	        }
 	    },
 	    {
@@ -686,6 +715,8 @@ function loadMasterData(){
 	        'rightArm': 'fasterShortSword',
 	        'leftArm': 'redShield',
 	       	'dropItems': {
+	       			'fasterShortSword': 1,
+	       			'redShield': 3,
 	                'aidBox': 5
 	        }
 	    },
@@ -709,33 +740,7 @@ function loadMasterData(){
 	        'HP': 50,
 	        'speed': 4,
 	        'scale': 1.1,
-	        'rightArm': 'grenade',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody6,
-	        'foot': EnemyFoot6,
-	        'name': 'Barbarian',
-	        'HP': 30,
-	        'speed': 5,
-	        'scale': 1.1,
-	        'rightArm': 'handAxe',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody7,
-	        'foot': EnemyFoot7,
-	        'name': 'TannedBarbarian',
-	        'HP': 40,
-	        'speed': 6,
-	        'scale': 1.15,
-	        'rightArm': 'crossGrenade',
+	        'rightArm': 'crossGrenade2x',
 	        'leftArm': 'ironShield',
 	       	'dropItems': {
 	                'aidBox': 5

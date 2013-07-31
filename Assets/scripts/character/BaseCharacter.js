@@ -250,15 +250,24 @@ class BaseCharacter extends BaseObject {
 	        for (var k2:int in rateMap.Keys) {
 	            if (dice < k2) { 
 	            	var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);			
-	                var dropItem = initiator.createItemByName(_this.transform.position.x, 
-		            										  _this.transform.position.z,
-		            									  	 rateMap[k2], false); 
+	                var dropItem = 
+	                		initiator.createItemByName(_this.transform.position.x, 
+            										 _this.transform.position.z,
+            									  	 rateMap[k2], false); 
 		            dropItem.dropFlag = true; 
 		            dropItem.transform.position += Vector3.up * 2;
 	                break;
 	            }
 	        }
 	    }
+	}
+	
+	function actionDamage(value:int) {
+		this.isAction = true;
+        this.action = CharacterAction.DAMAGE; 
+        this.HP -= value;                             
+		StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
+		StageInitiator.playSound("hit");
 	}
 	
 	function preUpdate() {	
@@ -287,7 +296,7 @@ class BaseCharacter extends BaseObject {
 		        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
 		        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
 		    } else if (_this.isAction) {
-		        if (_this.action == CharacterAction.DAMAGE) {  
+		        if (_this.action == CharacterAction.DAMAGE) {
 		            if (_this.bodyAnim.currentAnimationName != "damage") {
 		                _this.bodyAnim.gotoAndPlay("damage");
 		                _this.bodyAnim.onAnimationEnd = function () {
@@ -301,8 +310,6 @@ class BaseCharacter extends BaseObject {
 		                };
 		                if ( _this.damageLoop == 0 ) {
 			                _this.damageLoop = Mathf.CeilToInt(Random.value * 2);
-			                StageInitiator.addEffect(transform.position.x, transform.position.z, "damage");
-			                StageInitiator.playSound("hit");
 		                }
 		            }
 		        } else if (_this.action == CharacterAction.PARRIED) {
@@ -354,7 +361,8 @@ class BaseCharacter extends BaseObject {
 		        } else if (_this.action == CharacterAction.ATTACK) {
 		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame; 
 		 			if ((_this.bodyAnim.currentAnimationName == null)
-		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) { 
+		                || ((!_this.bodyAnim.currentAnimationName.Contains("attack"))
+		                && (!_this.bodyAnim.currentAnimationName.Contains("defence")))) { 
 		                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
 		                	if (_this.isPlayer){
 		                		_this.prepareThrowWeaponByAxis(_this.axisX, _this.axisY);
@@ -468,65 +476,6 @@ class BaseCharacter extends BaseObject {
 		        _this.bodyAnim.gotoAndStop("walk");     //animate
 		        _this.bodyAnim.isStopped = true;
 		    } 
-		    
-		    if (!_this.frameWaited){ 
-			    for (var other:BaseCharacter in context.characters) {
-			    	if(other.stateId == this.stateId) {
-			    		continue;
-			    	}    	
-			    	var deltaX = other.x() - x();
-	                var deltaY = other.y() - y();
-	                var range = _this.transform.lossyScale.z * 2 + other.transform.lossyScale.z * 2;
-	                var collisionRange = range * 0.6;
-	                var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
-	                var theta = Mathf.Atan2(deltaY, deltaX);
-	                var angleForOther = (theta * 180 / Mathf.PI) - _this.direction;
-	                angleForOther = AppContext.fixAngle(angleForOther);
-	                var angleForObj = (theta * 180 / Mathf.PI) - 180 - other.direction;
-	                angleForObj = AppContext.fixAngle(angleForObj);
-	
-	                if (_this.teamNumber != other.teamNumber
-	                    && _this.isAction && !_this.isWalk
-	                    && (_this.action == CharacterAction.ATTACK)
-	                    && (_this.attackFrame >= 2)
-	                    && (_this.rightArm != null)) { 
-	                    
-	                    var weaponRange = 0;
-	                    var weaponPoint = 0;
-	                    if (_this.rightArm.type == BaseItem.TYPE_SWORD) {
-	                        weaponRange = _this.rightArm.range * BaseItem.PIXEL_SCALE;
-	                        weaponPoint = _this.rightArm.bonusPoint;
-	                    }
-					
-	                    if ((distance < range + weaponRange)
-	                        && ((angleForOther > -80) && (angleForOther < 30))) {
-	                        // right
-	                        var kickBackRange = -1 * Random.value;
-	                        if ((other.isAction && (other.action == CharacterAction.DEFENCE)
-	                            && (other.leftArm != null && other.leftArm.type == BaseItem.TYPE_SHIELD))
-	                            && ((angleForObj > -45) && (angleForObj < 45))) {
-	                            _this.vX -= Mathf.Cos(theta) * kickBackRange;
-	                            _this.vY -= Mathf.Sin(theta) * kickBackRange; 
-	                            _this.isAction = true;
-	                            _this.action = CharacterAction.PARRIED;
-	                            _this.parriedCount = 1; 
-	                            StageInitiator.playSound("parried"); 
-	                            other.leftArm.onUse(other, _this);
-	                        } else if (!other.isAction || (other.action != CharacterAction.DAMAGE)) {
-	                            other.vX -= Mathf.Cos(theta) * kickBackRange;
-	                            other.vY -= Mathf.Sin(theta) * kickBackRange; 
-	                            other.isAction = true;
-	                            other.action = CharacterAction.DAMAGE; 
-	                            other.HP -= Mathf.CeilToInt(weaponPoint * (Random.value * 0.20 + 1));                            
-	                            //ToDo
-	                            //if ((_this.playData != null) && (other == _this.player)) {
-	                                //_this.playData.enemy = _this;
-	                            //}
-	                        }
-	                    }
-	                }
-			    }
-		    }
 		
 			var maxFrame = _this.bodyAnim.numX * _this.bodyAnim.numY / 2;
 		    if (_this.bodyAnim.currentFrame >= maxFrame) {
@@ -583,6 +532,7 @@ class BaseCharacter extends BaseObject {
 	    	 var item:BaseItem = getItemForEquip(itemName);
 	    	 item.transform.parent = this.transform;
 	    	 this.leftArm = item; 
+	    	 item.useCharacter = this;
 	    }
 	}
 	
@@ -602,6 +552,7 @@ class BaseCharacter extends BaseObject {
 	    	 item.transform.parent = this.transform;
 	    	 this.itemThrownName = itemName;
 	    	 this.rightArm = item;
+	    	 item.useCharacter = this;
 	    }
 	}
 	

@@ -212,9 +212,7 @@ class BaseItem extends MonoBehaviour{
                                             var kickBackRange = -1 * Random.value * range;
                                             otherCharacter.vX -= Mathf.Cos(theta) * kickBackRange;
                                             otherCharacter.vY -= Mathf.Sin(theta) * kickBackRange;
-                                            otherCharacter.isAction = true;
-                                            otherCharacter.action = CharacterAction.DAMAGE;
-                                            otherCharacter.HP -= Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1));
+                                            otherCharacter.actionDamage(Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1)));
                                         }
 									} else {
 										other.HP -= Mathf.CeilToInt(this.bonusPoint * (Random.value * 0.20 + 1));
@@ -257,7 +255,64 @@ class BaseItem extends MonoBehaviour{
     			stopFlag = true;
     			rigidbody.velocity = Vector3.zero;
     		}
-    	}
+    	} 
+    }
+    
+    function OnTriggerStay (collision : Collider) { 
+    	if ( this.type == BaseItem.TYPE_SWORD ) {  
+    		var otherObject:BaseObject = collision.gameObject.GetComponent('BaseObject'); 
+			if (otherObject && this.useCharacter) {  
+		    	if(otherObject.stateId == this.useCharacter.stateId) {
+		    		return;
+		    	} else if ((this.useCharacter.action == CharacterAction.ATTACK)
+	                    && (this.useCharacter.attackFrame >= 2)) {
+			    	var deltaX = otherObject.x() - x();
+	                var deltaY = otherObject.y() - y();
+	                var range = this.useCharacter.transform.lossyScale.z * 2 + otherObject.transform.lossyScale.z * 2;
+	                var collisionRange = range * 0.6;
+	                var distance = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+	                
+	                var weaponRange = this.range * BaseItem.PIXEL_SCALE;
+	                var weaponPoint = this.bonusPoint;
+	                var otherCharacter = otherObject as BaseCharacter;
+	                if (otherCharacter) { 
+		                var theta = Mathf.Atan2(deltaY, deltaX);
+		                var angleForOther = (theta * 180 / Mathf.PI) - this.useCharacter.direction;
+		                angleForOther = AppContext.fixAngle(angleForOther);
+		                var angleForObj = (theta * 180 / Mathf.PI) - 180 - otherCharacter.direction;
+		                angleForObj = AppContext.fixAngle(angleForObj);
+		  
+		                if (this.useCharacter.teamNumber != otherCharacter.teamNumber) { 
+		                    if (distance < range + weaponRange) {
+		                        var kickBackRange = -1 * Random.value; 
+		                        if (((otherCharacter.action == CharacterAction.DEFENCE)
+		                            && (otherCharacter.leftArm != null
+		                            && otherCharacter.leftArm.type == BaseItem.TYPE_SHIELD))
+		                            && ((angleForObj > -45) && (angleForObj < 45))) {
+		                            this.useCharacter.vX -= Mathf.Cos(theta) * kickBackRange;
+		                            this.useCharacter.vY -= Mathf.Sin(theta) * kickBackRange; 
+		                            this.useCharacter.isAction = true;
+		                            this.useCharacter.action = CharacterAction.PARRIED;
+		                            this.useCharacter.parriedCount = 1; 
+		                            StageInitiator.playSound("parried"); 
+		                            otherCharacter.leftArm.onUse(otherCharacter, this.useCharacter);
+		                        } else if (!otherCharacter.isAction || (otherCharacter.action != CharacterAction.DAMAGE)) {
+		                            otherCharacter.vX -= Mathf.Cos(theta) * kickBackRange;
+		                            otherCharacter.vY -= Mathf.Sin(theta) * kickBackRange; 
+		                            otherCharacter.actionDamage(Mathf.CeilToInt(weaponPoint * (Random.value * 0.20 + 1)));
+		                            //ToDo
+		                            //if ((this.useCharacter.playData != null) && (otherCharacter == this.useCharacter.player)) {
+		                                //this.useCharacter.playData.enemy = this.useCharacter;
+		                            //}
+		                        }
+		                    }
+						}
+					} else {
+						otherObject.HP -= Mathf.CeilToInt(weaponPoint * (Random.value * 0.20 + 1));                            
+					}
+				}	
+			}
+    	} 
     }
     
     function OnTriggerEnter (other : Collider) { 
