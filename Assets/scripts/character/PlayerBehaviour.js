@@ -71,8 +71,18 @@ class PlayerBehaviour extends BaseCharacter {
 		    }
 		}
 		 
-		cursor.z = Camera.main.transform.position.y;
-		cursor = Camera.main.ScreenToWorldPoint(cursor) - transform.position;
+		var cosAngle:float = Mathf.Cos(CameraBehaviour.BASE_ANGLE * Mathf.PI / 180);
+		cursor.z = Camera.main.transform.position.y / cosAngle;
+		
+		cursor = Camera.main.ScreenToWorldPoint(cursor);
+		var progressAngle = Mathf.Atan2((Camera.main.transform.position.y - cursor.y), cursor.z);
+		var tanProgressAngle:float = Mathf.Tan(progressAngle);
+		cursor.z += cursor.y / tanProgressAngle;
+		cursor.y = 0;
+		
+		//GameObject.Find("guide").transform.position = cursor;
+		
+		cursor = cursor - transform.position;
 		
 		axisX = cursor.x; 
 		axisY = cursor.z; 
@@ -156,8 +166,9 @@ class PlayerBehaviour extends BaseCharacter {
 	                }
 	            } else { 
 	                _this.isAction = true;
-	                if ((_this.bodyAnim.currentAnimationName == null)
-		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) {
+	                if ((_this.currentAnimation == null)
+		                || ((_this.currentAnimation != ("attack"))
+		                	&& (_this.currentAnimation != ("throw")))) {
 		                _this.action = CharacterAction.DEFENCE_MOTION; 
 		                if( _this.rightArm ){
 		                	_this.defenceCount = 8;

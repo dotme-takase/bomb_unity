@@ -29,29 +29,6 @@ var hit:AudioClip;
 var parried:AudioClip;
 var pickup:AudioClip;
  
-var EnemyBody1:Material;
-var EnemyFoot1:Material; 
-var EnemyBody2:Material;
-var EnemyFoot2:Material; 
-var EnemyBody3:Material;
-var EnemyFoot3:Material; 
-var EnemyBody4:Material;
-var EnemyFoot4:Material; 
-var EnemyBody5:Material;
-var EnemyFoot5:Material;
-var EnemyBody6:Material;
-var EnemyFoot6:Material;
-var EnemyBody7:Material;
-var EnemyFoot7:Material;
-var EnemyBody8:Material;
-var EnemyFoot8:Material;
-var EnemyBody9:Material;
-var EnemyFoot9:Material;  
-var EnemyBody1_128:Material;
-var EnemyFoot1_128:Material;  
-var EnemyBody2_128:Material;
-var EnemyFoot2_128:Material;  
- 
 var context = AppContext.getInstance();
 var fadeCallback = function(){};
 var fadeCountMax:float = 0;
@@ -62,7 +39,6 @@ var blackTexture:Texture2D = null;
 function OnGUI () { 
 	if (!blackTexture) { 
 		blackTexture=new Texture2D(32, 32, TextureFormat.RGB24, false);
-		blackTexture.ReadPixels(Rect(0, 0, 32, 32), 0, 0, false);
 		blackTexture.SetPixel(0, 0, Color.white);
 		blackTexture.Apply();
 	}
@@ -136,7 +112,7 @@ function Start () {
 	        	var floorObject:GameObject = Instantiate (Floor, Vector3(x * tileSize, -0.5, y * tileSize)
 	        		, Quaternion.identity);
 	        	if ( Mathf.FloorToInt(Random.value * 100)  < 10 ) {
-	        		var boxObject:GameObject = Instantiate (WoodenBox, Vector3(x * tileSize, 3.5, y * tileSize)
+	        		var boxObject:GameObject = Instantiate (WoodenBox, Vector3(x * tileSize, 5.0, y * tileSize)
 	        		, Quaternion.identity);
 	        	} else {
 		        	_floorList.push(Vector2(x, y));
@@ -200,10 +176,11 @@ function Start () {
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
     	
-    	var enemyIndex = Mathf.FloorToInt(Random.value * 2.5) + Mathf.Min(floorBonus, enemyData.Length);
+    	var enemyIndex = Mathf.Min(floorBonus, enemyData.Length - 1);
     	var enemyData:Hashtable = enemyData[enemyIndex]; 
     	createEnemy(enemyData, enemy);
     }
+    
     createDownStair();
     
     var autoMap:GameObject = GameObject.Find("autoMap");
@@ -212,22 +189,10 @@ function Start () {
     	var pos = Camera.main.ScreenToWorldPoint(Vector3(Screen.width * 0.5, Screen.height * 0.9, 10));
     	autoMap.transform.position = pos - Vector3(autoMapScript.chipSize * map.GetLength(0), autoMapScript.chipSize * map.GetLength(1), 0);
     }
-    
     context.isLoading = false;
 }
 
-public function createEnemy(data:Hashtable, enemy:BaseCharacter) {
-	if (data.ContainsKey("body")) { 
-    	var body = enemy.GetComponentInChildren(BodyAnimation);
-    	var matBody:Material = data["body"];
-		body.renderer.material = matBody;
-    } 
-    
-    if (data.ContainsKey("foot")) { 
-    	var foot = enemy.GetComponentInChildren(LegAnimation);
-		foot.renderer.material = data["foot"];
-    } 
-    
+public function createEnemy(data:Hashtable, enemy:BaseCharacter) {        
     if (data.ContainsKey("HP")) { 
     	enemy.MHP = enemy.HP = data["HP"];
     } 
@@ -358,7 +323,7 @@ function createDownStair(){
     	Instantiate (DownStair, pos, Quaternion.identity);
     	Destroy(obj);   
     	
-    	var boxObject:GameObject = Instantiate (WoodenBox, Vector3(pos.x, 3.5, pos.z)
+    	var boxObject:GameObject = Instantiate (WoodenBox, Vector3(pos.x, 5.0, pos.z)
 	        		, Quaternion.identity);
     	 
     	var oldChipObj = context.autoMap[context.downStairPoint.y, context.downStairPoint.x];
@@ -372,85 +337,6 @@ function createDownStair(){
 }
 
 public static var ITEMS = {
-    "shortSword": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 20,
-        "bonusPoint": 4,
-        "speed": 1,
-        "frame": 0
-    },
-    "longSword": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 28,
-        "bonusPoint": 8,
-        "speed": 0,
-        "frame": 1
-    },
-    "fasterShortSword": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 20,
-        "bonusPoint": 5,
-        "speed": 2,
-        "frame": 2
-    },
-    "handAxe": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 22,
-        "bonusPoint": 16,
-        "speed": -2,
-        "frame": 3
-    },
-    "katana": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 28,
-        "bonusPoint": 10,
-        "speed": 1,
-        "frame": 4
-    },
-    "ryuyotou": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 24,
-        "bonusPoint": 13,
-        "speed": -1,
-        "frame": 5
-    },
-    "broadSword": {
-        "type": BaseItem.TYPE_SWORD,
-        "range": 32,
-        "bonusPoint": 48,
-        "speed": 0,
-        "frame": 6
-    },
-    "woodenShield": {
-        "type": BaseItem.TYPE_SHIELD,
-        "HP": 30,
-        "bonusPoint": 4,
-        "frame": 0
-    },
-    "bronzeShield": {
-        "type": BaseItem.TYPE_SHIELD,
-        "HP": 60,
-        "bonusPoint": 5,
-        "frame": 1
-    },
-    "ironShield": {
-        "type": BaseItem.TYPE_SHIELD,
-        "HP": 120,
-        "bonusPoint": 6,
-        "frame": 2
-    },
-    "blueShield": {
-        "type": BaseItem.TYPE_SHIELD,
-        "HP": 80,
-        "bonusPoint": 12,
-        "frame": 3
-    },
-    "redShield": {
-    	"type": BaseItem.TYPE_SHIELD,
-        "HP": 90,
-        "bonusPoint": 16,
-        "frame": 4
-    },
     "aidBox": {
         "type": BaseItem.TYPE_MISC,
         "onUse": function (character:BaseCharacter, target:BaseCharacter) { 
@@ -541,8 +427,7 @@ var enemyData:Hashtable[] = null;
 function loadMasterData(){
 	enemyData = [
 	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
+	        'body': Enemy1,
 	        'name': 'Militia',
 	        'HP': 10,
 	        'speed': 5,
@@ -554,244 +439,14 @@ function loadMasterData(){
 	        }
 	    },
 	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
+	        'body': Enemy1,
 	        'name': 'Militia',
 	        'HP': 10,
 	        'speed': 5,
 	        'scale': 1.0,
 	        'rightArm': 'grenade',
-	        'leftArm': 'woodenShield',
-	       	'dropItems': { 
-	       			'grenade':3,
-	       			'woodenShield': 1,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
-	        'name': 'Militia',
-	        'HP': 10,
-	        'speed': 5,
-	        'scale': 1.0,
-	        'rightArm': 'bombTimer',
-	        'leftArm': 'woodenShield',
-	       	'dropItems': {
-	       			'bombTimer': 8,
-	                'aidBox': 1
-	        }
-	    },
-	    {
-	        'body': EnemyBody2,
-	        'foot': EnemyFoot2,
-	        'name': 'SilverGuard',
-	        'HP': 30,
-	        'speed': 4,
-	        'scale': 1.0,
-	        'rightArm': 'grenade',
 	        'leftArm': null,
 	       	'dropItems': {
-	       			'crossBombTimer':5,
-	                'thrownPlus': 3
-	        }
-	    },
-	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
-	        'name': 'Militia',
-	        'HP': 10,
-	        'speed': 5,
-	        'scale': 1.0,
-	        'rightArm': 'fasterShortSword',
-	        'leftArm': null,
-	       	'dropItems': {
-	       			'fasterShortSword': 1,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
-	        'name': 'Militia',
-	        'HP': 10,
-	        'speed': 5,
-	        'scale': 1.0,
-	        'rightArm': 'crossBombTimer',
-	        'leftArm': null,
-	       	'dropItems': {
-	       			'crossBombTimer':5,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody3,
-	        'foot': EnemyFoot3,
-	        'name': 'Musha',
-	        'HP': 20,
-	        'speed': 6,
-	        'scale': 1.2,
-	        'rightArm': 'katana',
-	        'leftArm': null,
-	       	'dropItems': {
-	       			'katana': 1,
-	       			'thrownPlus': 3,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
-	        'name': 'Militia',
-	        'HP': 25,
-	        'speed': 6,
-	        'scale': 1.0,
-	        'rightArm': 'crossGrenade',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	       			'crossGrenade':1,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody6,
-	        'foot': EnemyFoot6,
-	        'name': 'Barbarian',
-	        'HP': 30,
-	        'speed': 5,
-	        'scale': 1.1,
-	        'rightArm': 'handAxe',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	       			'ironShield':5,
-	       			'thrownPlus': 3,
-	                'handAxe': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody7,
-	        'foot': EnemyFoot7,
-	        'name': 'rustyGuard',
-	        'HP': 40,
-	        'speed': 6,
-	        'scale': 1.1,
-	        'rightArm': 'crossGrenade',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	       			'crossGrenade':5,
-	                'aidBox': 2
-	        }
-	    },
-	    {
-	        'body': EnemyBody1,
-	        'foot': EnemyFoot1,
-	        'name': 'Militia',
-	        'HP': 25,
-	        'speed': 6,
-	        'scale': 1.0,
-	        'rightArm': 'longSword',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	       			'ironShield':5,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody4,
-	        'foot': EnemyFoot4,
-	        'name': 'MilitiaHead',
-	        'HP': 20,
-	        'speed': 6,
-	        'scale': 1.05,
-	        'rightArm': 'grenade2x',
-	        'leftArm': null,
-	       	'dropItems': {
-	       			'grenade2x':1,
-	                'aidBox': 10
-	        }
-	    },
-	    {
-	        'body': EnemyBody5,
-	        'foot': EnemyFoot5,
-	        'name': 'Ninja',
-	        'HP': 20,
-	        'speed': 8,
-	        'scale': 1,
-	        'rightArm': 'fasterShortSword',
-	        'leftArm': 'redShield',
-	       	'dropItems': {
-	       			'fasterShortSword': 1,
-	       			'redShield': 3,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody5,
-	        'foot': EnemyFoot5,
-	        'name': 'Ninja',
-	        'HP': 20,
-	        'speed': 8,
-	        'scale': 1,
-	        'rightArm': 'katana',
-	        'leftArm': 'redShield',
-	       	'dropItems': {
-	       			'thrownPlus': 3,
-	                'katana': 5
-	        }
-	    }, 
-	    {
-	        'body': EnemyBody2,
-	        'foot': EnemyFoot2,
-	        'name': 'SilverGuard',
-	        'HP': 50,
-	        'speed': 4,
-	        'scale': 1.1,
-	        'rightArm': 'crossGrenade2x',
-	        'leftArm': 'ironShield',
-	       	'dropItems': {
-	       			'crossGrenade2x': 3,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody8,
-	        'foot': EnemyFoot8,
-	        'name': 'BlueGuard',
-	        'HP': 60,
-	        'speed': 5,
-	        'scale': 1.2,
-	        'rightArm': 'grenade2x',
-	        'leftArm': 'blueShield',
-	       	'dropItems': {
-	       			'grenade2x': 3,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody1_128,
-	        'foot': EnemyFoot1_128,
-	        'name': 'Spider',
-	        'HP': 80,
-	        'speed': 6,
-	        'scale': 1.4,
-	        'rightArm': 'crossBombTimer2x',
-	        'leftArm': null,
-	       	'dropItems': {
-	       			'crossBombTimer2x': 3,
-	                'aidBox': 5
-	        }
-	    },
-	    {
-	        'body': EnemyBody2_128,
-	        'foot': EnemyFoot2_128,
-	        'name': 'Minotaur',
-	        'HP': 255,
-	        'speed': 5,
-	        'scale': 1.5,
-	        'rightArm': 'broadSword',
-	        'leftArm': null,
-	       	'dropItems': {
-	       			'broadSword': 3,
 	                'aidBox': 5
 	        }
 	    }

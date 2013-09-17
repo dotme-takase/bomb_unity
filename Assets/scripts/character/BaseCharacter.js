@@ -179,13 +179,8 @@ class BaseCharacter extends BaseObject {
 	    'parried': [0, 7]
 	};
 	
-	var initialize = function(bodyAnim, rightArmName, leftArmName) {
+	var initialize = function(rightArmName, leftArmName) {
 		var _this = this;
-		_this.bodyAnim = bodyAnim;
-	    if (_this.bodyAnim) {
-	    	_this.legAnim = AnimationContainer.clone(_this.bodyAnim);
-	    } 
-	    
 	    if (rightArmName != null ) {  
 	    	equipRight(rightArmName);
 	    }
@@ -199,8 +194,6 @@ class BaseCharacter extends BaseObject {
 	};
 	
 	var context :AppContext = AppContext.getInstance();
-	var bodyAnim :AnimationContainer = null;
-	var legAnim  :AnimationContainer = null;
 	
 	var leftArm:BaseItem = null;
 	var rightArm:BaseItem = null;
@@ -219,7 +212,7 @@ class BaseCharacter extends BaseObject {
 	var isAction = false;
 	var action = CharacterAction.NONE;
 	var parriedCount = 0;
-	var attackFrame = 0;
+	var isAttackFrame = false;
 	var isWalk = false;
 	var teamNumber = 0;
 	var clientTime = 0;
@@ -229,8 +222,52 @@ class BaseCharacter extends BaseObject {
 	var target:BaseCharacter = null;
 	var path:Point2D[] = null;
 	var nextToTarget:Point2D = null;
-	var currentFrame = 0;
+	var currentAnimation = "";
 	var frameWaited = false;
+	
+	var onAnimationEnd:Hashtable = new Hashtable();
+	
+	var onAttackStart = function(){
+	};
+	
+	function playAnimation(clip:String, callback:function()) {
+		playAnimationWithNormalizedStartTime(clip, callback, 0.0);
+	}
+	
+	function playAnimationWithNormalizedStartTime(clip:String, callback:function(), time:float) {
+		if (animation[clip] != null) {
+			if(time > 0.0) {
+				animation[clip].normalizedTime = time;
+			}
+			animation.Play(clip);
+			currentAnimation = clip;
+			var length:float = animation[clip].length;
+			var waitTime:float = length * (1.0 - time);
+			if (callback != null) {
+				var callbackId = AppContext.uuid();
+				this.onAnimationEnd[callbackId] = callback;
+				StartCoroutine(callOnAnimationEnd(waitTime, callbackId));
+			} 
+		}
+	}
+	
+	function callOnAnimationEnd(waitTime:float, callbackId:String){
+		yield WaitForSeconds (waitTime);
+		if (this.onAnimationEnd[callbackId] != null) {
+			var callback:function() = this.onAnimationEnd[callbackId];
+			callback();
+			this.onAnimationEnd.Remove(callbackId);
+			currentAnimation = "";
+		}
+	}
+	
+	function callOnAttackStart(waitTime:float){
+		yield WaitForSeconds (waitTime);
+		if (this.onAttackStart != null) {
+			this.onAttackStart();
+			this.onAttackStart = null;
+		}
+	}
 	
 	function die() {
 		var _this = this;
@@ -272,230 +309,174 @@ class BaseCharacter extends BaseObject {
 	
 	function preUpdate() {	
 		var _this = this; 
-		if (_this.bodyAnim && _this.legAnim) { 
-			if (_this.HP <= 0) {
-		        _this.die();
-		    }
-			_this.vX = _this.vY = 0; 
-			
-			if (_this.isWalk || (_this.action != CharacterAction.ATTACK)) { 
-				if (_this.itemThrownName 
-					&& _this.rightArm == null
-					&& (_this.itemThrownCount < _this.itemThrownMaxCount)) { 
-            		_this.equipRight(_this.itemThrownName);  
-            	}
-			} 
-			
-		    if (_this.isWalk) {
-		        _this.bodyAnim.isStopped = false; 
-		        if (_this.bodyAnim.currentAnimationName != "walk") {
-		        	_this.bodyAnim.gotoAndPlay("walk"); 
-		        	_this.bodyAnim.isLooping = true; 
-		        }
-		        
-		        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
-		        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
-		    } else if (_this.isAction) {
-		        if (_this.action == CharacterAction.DAMAGE) {
-		            if (_this.bodyAnim.currentAnimationName != "damage") {
-		                _this.bodyAnim.gotoAndPlay("damage");
-		                _this.bodyAnim.onAnimationEnd = function () {
-		                	if(_this.damageLoop <= 1) {
-		                		_this.damageLoop = 0;
-		                    	_this.vX = _this.vY = 0;
-		                    	_this.action = CharacterAction.NONE;
-		                    } else {
-		                    	_this.damageLoop--;
-		                    }
-		                };
-		                if ( _this.damageLoop == 0 ) {
-			                _this.damageLoop = Mathf.CeilToInt(Random.value * 2);
-		                }
-		            }
-		        } else if (_this.action == CharacterAction.PARRIED) {
-		            if (_this.bodyAnim.currentAnimationName != "parried") {
-		                _this.bodyAnim.gotoAndPlay("parried");
-		                if (_this.parriedCount > 0) {
-		                    StageInitiator.addEffect(transform.position.x, transform.position.z, "parried");
-		                }
-		                _this.bodyAnim.onAnimationEnd = function () {
+		var _onAnimationEnd = null;
+		var controller : CharacterController = GetComponent(CharacterController);
+		if (_this.HP <= 0) {
+	        _this.die();
+	    }
+		_this.vX = _this.vY = 0; 
 		
-		                    if (_this.parriedCount <= 0) {
-		                        _this.vX = _this.vY = 0;
-		                        _this.action = CharacterAction.NONE;
-		                    } else {
-		                        _this.parriedCount--;
-		                        _this.bodyAnim.currentAnimationFrame = 0;
-		                        _this.bodyAnim.gotoAndPlay("parried");
-		                    }
-		                };
-		            } 
-		            if (!frameWaited) {
-		            	_this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.05;
-		            	_this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.05; 
-		            }
-		        } else if (_this.action == CharacterAction.DEAD) {
-		            var size = transform.lossyScale.z * 4;
-		            var half = size / 2;
-		            for (var i = 0; i < 8; i++) {
-		                StageInitiator.addEffect(_this.x() + Random.value * size - half, _this.y() + Random.value * size - half, "dead");
-		            }
-		            StageInitiator.playSound("defeat");
-		            _this.context.removeCharacter(_this);
-		            Destroy(_this.gameObject);
-		        } else if (_this.action == CharacterAction.DEFENCE_MOTION) {
-		            if (_this.bodyAnim.currentAnimationName != "defence") {
-		                _this.bodyAnim.gotoAndPlay("defence");
-		                _this.bodyAnim.onAnimationEnd = function () {
-		                    _this.vX = _this.vY = 0;
-		                    _this.action = CharacterAction.DEFENCE;
-		                    _this.bodyAnim.gotoAndStopFrame(_this.bodyAnim.currentAnimation[1]);
-		                };
-		            } 
-		            if (!frameWaited) {
-		            	_this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * - 0.1;
-		            	_this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * - 0.1; 
-		            }
-		        } else if (_this.action == CharacterAction.DEFENCE) {
+		if (_this.isWalk || (_this.action != CharacterAction.ATTACK)) { 
+			if (_this.itemThrownName 
+				&& _this.rightArm == null
+				&& (_this.itemThrownCount < _this.itemThrownMaxCount)) { 
+        		_this.equipRight(_this.itemThrownName);  
+        	}
+		} 
 		
-		        } else if (_this.action == CharacterAction.ATTACK) {
-		 			_this.attackFrame = _this.bodyAnim.currentAnimationFrame; 
-		 			if ((_this.bodyAnim.currentAnimationName == null)
-		                || (!_this.bodyAnim.currentAnimationName.Contains("attack"))) { 
-		                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
-		                	if (_this.isPlayer){
-		                		_this.prepareThrowWeaponByAxis(_this.axisX, _this.axisY);
-		                	} else if(_this.target) {
-		                		_this.prepareThrowWeapon(Vector2(_this.target.x(), _this.target.y()));
-		                	} else {
-		                		_this.prepareThrowWeapon(Vector2(Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.context.tileSize + _this.x(), 
-		                										Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.context.tileSize + _this.y()));
-		                	}		
-		                    if (_this.rightArm.range > _this.context.tileSize * 3) {
-		                        _this.bodyAnim.gotoAndPlay("attack__1");
-		                    } else if (_this.rightArm.range > _this.context.tileSize * 2) {
-		                        _this.bodyAnim.gotoAndPlay("attack");
-		                    } else {
-		                        _this.bodyAnim.gotoAndPlay("attack_1");
-		                    }
-		                } else {
-			                var weaponSpeed = 2;
-			                if (_this.rightArm) {
-			                    if (_this.currentFrame == 10) {
-			                        weaponSpeed = 0;
-			                    } else {
-			                        weaponSpeed = _this.rightArm.speed;
-			                    }
-			                }
-			                if (weaponSpeed >= 2) {
-			                    _this.bodyAnim.gotoAndPlay("attack_2");
-			                } else if (weaponSpeed == 1) {
-			                    _this.bodyAnim.gotoAndPlay("attack_1");
-			                } else if (weaponSpeed == -1) {
-			                    _this.bodyAnim.gotoAndPlay("attack__1");
-			                } else if (weaponSpeed <= -2) {
-			                    _this.bodyAnim.gotoAndPlay("attack__2");
-			                } else {
-			                    _this.bodyAnim.gotoAndPlay("attack");
-			                }
-			                if (_this.rightArm ) {
-			                	StageInitiator.playSound("attack");
-			                }
-			            }
-		                _this.bodyAnim.onAnimationEnd = function () {		                	
-		                    if (_this.action != CharacterAction.ATTACK) {
-		                        return;
-		                    }
-		                    _this.attackFrame = 0;
-		                    _this.vX = _this.vY = 0;
-		                    _this.action = CharacterAction.NONE;
-		                };
-		            }
-		            
-		            if (!_this.frameWaited){ 
-			            if (_this.currentFrame < 10) {
-			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.1;
-			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.1;
-			            } else if (_this.currentFrame > 13) {
-			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * -0.2;
-			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * -0.2;
-			            } else {
-			                _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * 0.15;
-			                _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * 0.15;
-			            }
-			            if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
-		            		if (_this.currentFrame >= 12 && _this.currentFrame < 15) {  
-		            			var armDirection:Vector3 = 
-		            					Vector3(_this.rightArm.vX, 0 ,_this.rightArm.vY) * 1.25; 
+	    if (_this.isWalk) {
+	        if (_this.currentAnimation != "run") {
+	        	_this.playAnimation("run", null); 
+	        }
+	        
+	        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
+	        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
+	    } else if (_this.isAction) {
+	        if (_this.action == CharacterAction.DAMAGE) {
+	            if (_this.currentAnimation != "damaged") {
+	                _onAnimationEnd = function () {
+	                	_this.vX = _this.vY = 0;
+	                    _this.action = CharacterAction.NONE;
+	                };
+	                _this.playAnimation("damaged", _onAnimationEnd);
+	            }
+	        } else if (_this.action == CharacterAction.PARRIED) {
+	        	// ToDo
+	            if (_this.currentAnimation != "damaged") {
+	                if (_this.parriedCount > 0) {
+	                    StageInitiator.addEffect(transform.position.x, transform.position.z, "parried");
+	                }
+	                _onAnimationEnd = function () {
+						_this.vX = _this.vY = 0;
+	                	_this.action = CharacterAction.NONE;
+	                };
+	                _this.playAnimation("damaged", _onAnimationEnd);
+	            } 
+	        } else if (_this.action == CharacterAction.DEAD) {
+	            var size = transform.lossyScale.z * 4;
+	            var half = size / 2;
+	            for (var i = 0; i < 8; i++) {
+	                StageInitiator.addEffect(_this.x() + Random.value * size - half, _this.y() + Random.value * size - half, "dead");
+	            }
+	            StageInitiator.playSound("defeat");
+	            _this.context.removeCharacter(_this);
+	            Destroy(_this.gameObject);
+	        } else if (_this.action == CharacterAction.DEFENCE_MOTION) {
+	        	//ToDo
+	            if (_this.currentAnimation != "normal") { 
+	                _onAnimationEnd = function () {
+	                    _this.vX = _this.vY = 0;
+	                    _this.action = CharacterAction.DEFENCE;
+	                    _this.playAnimation("normal", _onAnimationEnd);
+	                };
+	                _this.playAnimation("normal", null);
+	            } 
+	        } else if (_this.action == CharacterAction.DEFENCE) {
+	
+	        } else if (_this.action == CharacterAction.ATTACK) {
+	 			var startY: float = _this.transform.position.y + controller.center.y;
+	 			if ((_this.currentAnimation == null)
+	                || ((_this.currentAnimation != "attack")
+	                	&& (_this.currentAnimation != "throw"))) {
+	                _onAnimationEnd = function () {		                	
+	                    if (_this.action != CharacterAction.ATTACK) {
+	                        return;
+	                    }
+	                    _this.isAttackFrame = false;
+	                    _this.vX = _this.vY = 0;
+	                    _this.action = CharacterAction.NONE;
+	                };
+	                if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
+	                	if (_this.isPlayer){
+	                		_this.prepareThrowWeaponByAxis(_this.axisX, _this.axisY, startY);
+	                	} else if(_this.target) {
+	                		_this.prepareThrowWeapon(Vector2(_this.target.x(), _this.target.y()), startY);
+	                	} else {
+	                		_this.prepareThrowWeapon(Vector2(Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.context.tileSize + _this.x(), 
+	                										Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.context.tileSize + _this.y()),
+	                										startY);
+	                	}		          	
+	                	
+	                    if (_this.rightArm.range > _this.context.tileSize * 3) {
+	                    	_this.playAnimationWithNormalizedStartTime("throw", _onAnimationEnd, 0.2);
+	                    } else if (_this.rightArm.range > _this.context.tileSize * 2) {
+	                        _this.playAnimationWithNormalizedStartTime("throw", _onAnimationEnd, 0.4);
+	                    } else {
+	                        _this.playAnimationWithNormalizedStartTime("throw", _onAnimationEnd, 0.5);
+	                    }
+	                    
+	                    _this.onAttackStart = function() { 
+		            		var armDirection:Vector3 = 
+		            					Vector3(_this.rightArm.vX, _this.rightArm.vY ,_this.rightArm.vZ); 
+							var forceDirection:Vector3 = armDirection * 20;                    									  
                     									
-								var forceDirection:Vector3 = armDirection * 20;                    									  
-                    									
-                    		    var _x1:float = _this.rightArm.range - (armDirection.magnitude) 
-                    		    				+ (Mathf.Pow(_this.rightArm.range, 1.8) * 0.01); 
-                    		    var _y1:float = _this.transform.position.y;
-                    		    var _x2:float = forceDirection.magnitude; 
-                    		    var _y2:float = _y1 * _x2 / _x1; 
-                    		    forceDirection += Vector3.down * _y2; 
-                    		      
- 								_this.itemThrownCount++;
- 								_this.itemThrownName = _this.rightArm.itemName;
+ 							_this.itemThrownCount++;
+ 							_this.itemThrownName = _this.rightArm.itemName;
                     			
-                    			var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);			
-		            			var armClone = initiator.createItemByName(_this.transform.position.x + armDirection.x, 
+                    		var initiator = GameObject.Find("Initialize").GetComponent(StageInitiator);			
+		            		var armClone = initiator.createItemByName(_this.transform.position.x + armDirection.x, 
 		            													_this.transform.position.z + armDirection.z,
 		            													_this.itemThrownName, true); 
 		            													
-		            			armClone.vX = armDirection.x;
-			                    armClone.vY = armDirection.z;
-			                    armClone.thrownTime = 0;
-			                    armClone.useCharacter = _this; 
+		            		armClone.vX = armDirection.x;
+			                armClone.vY = armDirection.z;
+			                armClone.thrownTime = 0;
+			                armClone.useCharacter = _this; 
 			                    
-			                    armClone.transform.position = _this.transform.position + armDirection;  
-			                    if(_x1 >= armDirection.magnitude){
-			                    	armClone.rigidbody.AddForce(forceDirection, ForceMode.VelocityChange); 
-			                    } else { 
-			                    	armClone.transform.position += armDirection * 0.2;
-			                    	armClone.rigidbody.useGravity = true;
-			                    } 
+			                armClone.transform.position = _this.rightArm.gameObject.transform.position + armDirection;
+			                armClone.transform.position.y = startY;
 			                    
-			                    Destroy(_this.rightArm.gameObject);                 									
-                    			_this.rightArm = null;	
-			                } 
-			            }  
-		            } 
-		        } else if (_this.action == CharacterAction.NONE) {
-		            _this.isAction = false;
-		            _this.vX = _this.vY = 0;
-		            _this.bodyAnim.gotoAndStop("walk");     //animate
-		            _this.bodyAnim.isStopped = true;
-		        }
-		    } else {   	
-		        _this.isAction = false;
-		        _this.vX = _this.vY = 0;
-		        _this.bodyAnim.gotoAndStop("walk");     //animate
-		        _this.bodyAnim.isStopped = true;
-		    } 
-		
-			var maxFrame = _this.bodyAnim.numX * _this.bodyAnim.numY / 2;
-		    if (_this.bodyAnim.currentFrame >= maxFrame) {
-		        _this.bodyAnim.gotoAndStopFrame(maxFrame - 1);
-		    }
-		    _this.bodyAnim.tick();
-		    _this.legAnim.currentFrame = (_this.bodyAnim.currentFrame + maxFrame); 
-		    
-		    if (_this.rightArm) {  
-		    	var rhandMapPos:Array = _this.handMap[0][_this.bodyAnim.currentFrame];  
-		     	transformItemByHandMap(_this.rightArm, rhandMapPos);
-		    }
-		
-		    if (_this.leftArm) {
-		        var lhandMapPos:Array = _this.handMap[1][_this.bodyAnim.currentFrame];
-		        transformItemByHandMap(_this.leftArm, lhandMapPos);
-		    }  
-		     
-		    _this.frameWaited = (_this.currentFrame == _this.bodyAnim.currentFrame);
-		    _this.currentFrame = _this.bodyAnim.currentFrame; 
-	    }
+			                var mapPoint = context.getMapPoint(armClone.transform.position); 
+	                        var block:String = null;
+	                        if ((mapPoint.y > 0 && mapPoint.y < context.map.GetLength(0)) 
+	                        	&& (mapPoint.x > 0 && mapPoint.x < context.map.GetLength(1))) {
+	                        	block = context.map[mapPoint.y, mapPoint.x]; 
+	                        }
+	                        if (block) {
+	                        	armClone.transform.position -= armDirection * 2;
+	                        }
+	                        
+			                armClone.collider.isTrigger = false;
+			                armClone.rigidbody.AddForce(forceDirection, ForceMode.VelocityChange);
+			                armClone.rigidbody.useGravity = true; 
+			                    
+			                Destroy(_this.rightArm.gameObject);                 									
+                    		_this.rightArm = null;	
+		            	};
+						StartCoroutine(callOnAttackStart(_this.animation["throw"].length * 0.85 
+														* (1.0 - _this.animation["throw"].normalizedTime)));
+	                } else if (_this.rightArm) {
+		                var weaponSpeed = _this.rightArm.speed;
+		                if (weaponSpeed >= 2) {
+		                    _this.playAnimationWithNormalizedStartTime("attack", _onAnimationEnd, 0.7);
+		                } else if (weaponSpeed == 1) {
+		                    _this.playAnimationWithNormalizedStartTime("attack", _onAnimationEnd, 0.6);
+		                } else if (weaponSpeed == -1) {
+		                    _this.playAnimationWithNormalizedStartTime("attack", _onAnimationEnd, 0.3);
+		                } else if (weaponSpeed <= -2) {
+		                    _this.playAnimationWithNormalizedStartTime("attack", _onAnimationEnd, 0.1);
+		                } else {
+		                    _this.playAnimationWithNormalizedStartTime("attack", _onAnimationEnd, 0.5);
+		                }
+		                if (_this.rightArm ) {
+		                	StageInitiator.playSound("attack");
+		                }
+		            } else {
+		            	this.isAttackFrame = false;
+	                    _this.vX = _this.vY = 0;
+	                    _this.action = CharacterAction.NONE;
+		            }
+	            }
+	        } else if (_this.action == CharacterAction.NONE) {
+	            _this.isAction = false;
+	            _this.vX = _this.vY = 0;
+	            _this.playAnimation("normal", null);     //animate
+	        }
+	    } else {   	
+	        _this.isAction = false;
+	        _this.vX = _this.vY = 0;
+	        _this.playAnimation("normal", null);     //animate
+	    } 
 	}
 	
 	function transformItemByHandMap(item:BaseItem, handMapPos:Array){
@@ -547,8 +528,18 @@ class BaseCharacter extends BaseObject {
              } else if (oldItemThrownName == null || item.itemName != oldItemThrownName){ 
              	 this.itemThrownMaxCount = item.thrownMaxCount;
              } 
+             var handR = transform.Find("rig/root/MCH-upper_arm_R_socket2/MCH-upper_arm_R_hinge/upper_arm_R/forearm_R/hand_R");
+             item.rigidbody.constraints = RigidbodyConstraints.FreezePositionX
+             						 | RigidbodyConstraints.FreezePositionY
+             						 | RigidbodyConstraints.FreezePositionZ;
              
-	    	 item.transform.parent = this.transform;
+             if(handR != null) {
+	    	 	item.transform.parent = handR;
+	    	 	item.transform.localPosition = Vector3.zero;
+	    	 } else {
+	    	 	item.transform.parent = this.transform;
+	    	 }
+	    	 
 	    	 this.itemThrownName = itemName;
 	    	 this.rightArm = item;
 	    	 item.useCharacter = this;
@@ -760,22 +751,32 @@ class BaseCharacter extends BaseObject {
         context.heavyTasks = _heavyTasks.ToBuiltin(String);
     } 
     
-    function prepareThrowWeaponByAxis(deltaX:float, deltaY:float) {
+    function prepareThrowWeaponByAxis(deltaX:float, deltaY:float, startY:float) {
 	    var _this = this;
 	    if (_this.rightArm && _this.rightArm.isThrowWeapon()) {
-	        var theta = Mathf.Atan2(deltaY, deltaX);
-	        _this.rightArm.range = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+	        var theta:float = Mathf.Atan2(deltaY, deltaX);
+	        var range:float = Mathf.Sqrt(Mathf.Pow(deltaX, 2) + Mathf.Pow(deltaY, 2));
+	        var theta2:float = Mathf.Atan2(startY, range);
+	        _this.rightArm.range = range;
+	        
 	        _this.rightArm.vX = _this.rightArm.speed * Mathf.Cos(theta) * BaseItem.PIXEL_SCALE;
-	        _this.rightArm.vY = _this.rightArm.speed * Mathf.Sin(theta) * BaseItem.PIXEL_SCALE;
+	        _this.rightArm.vY = -1 * _this.rightArm.speed * Mathf.Sin(theta2) * BaseItem.PIXEL_SCALE;
+	        _this.rightArm.vZ = _this.rightArm.speed * Mathf.Sin(theta) * BaseItem.PIXEL_SCALE;
+	        
+	        /* cheap workaround             */
+	        var kY:float = range - 24.0;
+	        _this.rightArm.vY += kY * 0.02;
+	        /********************************/
+	        
 	        _this.rightArm.useCharacter = this;
 	    }
 	}
 	
-	function prepareThrowWeapon(target: Vector2) {
+	function prepareThrowWeapon(target: Vector2, startY:float) {
 	    var _this = this;
         var deltaX = target.x - _this.x();
         var deltaY = target.y - _this.y();
-        prepareThrowWeaponByAxis(deltaX, deltaY);
+        prepareThrowWeaponByAxis(deltaX, deltaY, startY);
 	}
 	 
 	 
@@ -784,18 +785,8 @@ class BaseCharacter extends BaseObject {
 	// Override
 	
 	function Start() {
-		var bodyAnim : AnimationContainer = new AnimationContainer();
-		bodyAnim.animations = BaseCharacter.BODY_ANIMATION;
-		bodyAnim.numX = 8;
-		bodyAnim.numY = 4;
-		
-		this.initialize(bodyAnim, null, null);
-		
-		var head = GetComponentInChildren(BodyAnimation);
-		head.ac = this.bodyAnim;
-		var foot = GetComponentInChildren(LegAnimation);
-		foot.ac = this.legAnim;
-		this.bodyAnim.gotoAndStop("walk");
+		this.playAnimation("normal", null);
+		this.initialize(null, null);
 		var context:AppContext = AppContext.getInstance();
 		context.addCharacter(this); 
 		stateId = AppContext.uuid();
@@ -805,7 +796,7 @@ class BaseCharacter extends BaseObject {
 		var controller : CharacterController = GetComponent(CharacterController);
 		this.preUpdate();
 		
-		transform.rotation = Quaternion.Euler(0, (-180 - this.direction), 0);
+		transform.rotation = Quaternion.Euler(0, (90 - this.direction), 0);
 		controller.Move(Vector3(this.vX, 1.0, this.vY));
 		controller.Move(Vector3(0, -1 * transform.position.z, 0));	
 	} 

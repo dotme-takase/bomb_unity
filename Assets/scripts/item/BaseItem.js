@@ -7,6 +7,7 @@ class BaseItem extends MonoBehaviour{
     var type:String;
     var vX:float;
     var vY:float;
+    var vZ:float;
     var range2d:int[]; //radius x angle
     var useCharacter:BaseCharacter; 
     var frame = 0; 
@@ -244,6 +245,12 @@ class BaseItem extends MonoBehaviour{
 	    		} 
     		}
     	}
+    	
+    	if( dropFlag ){
+    		var v:Vector3 = Camera.main.transform.position - transform.position;
+	        v.y = v.z = 0.0;
+	        transform.LookAt(Camera.main.transform.position - v);      
+    	}
     }
     
     function OnCollisionEnter (collision : Collision) {
@@ -265,7 +272,7 @@ class BaseItem extends MonoBehaviour{
 		    	if(otherObject.stateId == this.useCharacter.stateId) {
 		    		return;
 		    	} else if ((this.useCharacter.action == CharacterAction.ATTACK)
-	                    && (this.useCharacter.attackFrame >= 2)) {
+	                    && (this.useCharacter.isAttackFrame)) {
 			    	var deltaX = otherObject.x() - x();
 	                var deltaY = otherObject.y() - y();
 	                var range = this.useCharacter.transform.lossyScale.z * 2 + otherObject.transform.lossyScale.z * 2;

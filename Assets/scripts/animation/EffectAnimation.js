@@ -20,6 +20,7 @@ class EffectAnimation extends TextureAnimation {
 			Destroy(gameObject);
 		};
 		transform.position.y = 0;
+		yToCamera = 4.0;
 		_position = transform.position;
 	}
 	
@@ -37,12 +38,12 @@ class EffectAnimation extends TextureAnimation {
 		}
 		
 		if( Camera.main ) {
-			transform.position.y = 0;
+			transform.position.y = 0.0;
 			var vN:Vector3 = (Camera.main.transform.position - _position).normalized;
 			transform.position = _position + vN * yToCamera;
 			
 			var v:Vector3 = Camera.main.transform.position - transform.position;
-	        v.x = v.z = 0.0;
+	        v.y = v.z = 0.0;
 	        transform.LookAt(Camera.main.transform.position - v);     
         }
 		super.Update();
