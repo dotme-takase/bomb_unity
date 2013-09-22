@@ -435,7 +435,8 @@ function loadMasterData(){
 	        'rightArm': 'grenade',
 	        'leftArm': null,
 	       	'dropItems': {
-	                'aidBox': 5
+	                'grenade': 5,
+	                'thrownPlus': 2
 	        }
 	    },
 	    {
@@ -447,7 +448,8 @@ function loadMasterData(){
 	        'rightArm': 'grenade',
 	        'leftArm': null,
 	       	'dropItems': {
-	                'aidBox': 5
+	                'aidBox': 5,
+	                'crossBombTimer': 2
 	        }
 	    }
 	];

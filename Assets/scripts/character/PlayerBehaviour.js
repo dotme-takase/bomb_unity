@@ -72,14 +72,25 @@ class PlayerBehaviour extends BaseCharacter {
 		}
 		 
 		var cosAngle:float = Mathf.Cos(CameraBehaviour.BASE_ANGLE * Mathf.PI / 180);
-		cursor.z = Camera.main.transform.position.y / cosAngle;
-		
+		cursor.z = Camera.main.transform.position.y / cosAngle;		
 		cursor = Camera.main.ScreenToWorldPoint(cursor);
-		var progressAngle = Mathf.Atan2((Camera.main.transform.position.y - cursor.y), cursor.z);
-		var tanProgressAngle:float = Mathf.Tan(progressAngle);
-		cursor.z += cursor.y / tanProgressAngle;
-		cursor.y = 0;
 		
+		var x_0:float = Camera.main.transform.position.x;
+		var y_0:float = Camera.main.transform.position.y;
+		var z_0:float = Camera.main.transform.position.z;
+		
+		var ex:float = cursor.x - x_0;
+		var ey:float = cursor.y - y_0;
+		var ez:float = cursor.z - z_0;
+		
+		if( ey != 0 ) {
+			var _t:float = -1 * y_0 / ey;
+			var _x:float = ex * _t + x_0;
+			var _y:float = ey * _t + y_0;
+			var _z:float = ez * _t + z_0;
+			cursor = Vector3(_x, _y, _z);
+		}
+
 		//GameObject.Find("guide").transform.position = cursor;
 		
 		cursor = cursor - transform.position;

@@ -329,8 +329,8 @@ class BaseCharacter extends BaseObject {
 	        	_this.playAnimation("run", null); 
 	        }
 	        
-	        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
-	        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.05;
+	        _this.vX = Mathf.Cos(_this.direction * Mathf.PI / 180) * _this.speed * 0.08;
+	        _this.vY = Mathf.Sin(_this.direction * Mathf.PI / 180) * _this.speed * 0.08;
 	    } else if (_this.isAction) {
 	        if (_this.action == CharacterAction.DAMAGE) {
 	            if (_this.currentAnimation != "damaged") {
@@ -408,7 +408,7 @@ class BaseCharacter extends BaseObject {
 	                    _this.onAttackStart = function() { 
 		            		var armDirection:Vector3 = 
 		            					Vector3(_this.rightArm.vX, _this.rightArm.vY ,_this.rightArm.vZ); 
-							var forceDirection:Vector3 = armDirection * 20;                    									  
+							var forceDirection:Vector3 = armDirection * 25;                    									  
                     									
  							_this.itemThrownCount++;
  							_this.itemThrownName = _this.rightArm.itemName;

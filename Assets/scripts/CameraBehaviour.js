@@ -1,5 +1,5 @@
 public static var BASE_HEIGHT:float = 50.0;
-public static var BASE_ANGLE:float = 30;
+public static var BASE_ANGLE:float = 25;
 
 var target : Transform; 
 var targetOffset = Vector3.zero;
