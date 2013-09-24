@@ -1,70 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>10.0.20506</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{B9F5C0C4-AB50-0B29-BA48-88DEF26F1037}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>AssemblyUnityScript</RootNamespace>
-    <AssemblyName>Assembly-UnityScript</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <UsePartialTypes>false</UsePartialTypes>
+	<Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+	<ProductVersion>10.0.20506</ProductVersion>
+	<SchemaVersion>2.0</SchemaVersion>
+	<ProjectGuid>{B9F5C0C4-AB50-0B29-BA48-88DEF26F1037}</ProjectGuid>
+	<OutputType>Library</OutputType>
+	<AppDesignerFolder>Properties</AppDesignerFolder>
+	<RootNamespace></RootNamespace>
+	<AssemblyName>Assembly-UnityScript</AssemblyName>
+	<TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+	<FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>Temp\bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;UNITY_IPHONE;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_AUDIO_FMOD;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;ENABLE_WWW;ENABLE_IMAGEEFFECTS;UNITY_IPHONE_API;ENABLE_WEBCAM;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GAMECENTER;UNITY_IOS;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;UNITY_4_2_1;UNITY_4_2;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_OSX</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>0169</NoWarn>
+	<DebugSymbols>true</DebugSymbols>
+	<DebugType>full</DebugType>
+	<Optimize>false</Optimize>
+	<OutputPath>Temp\bin\Debug\</OutputPath>
+	<DefineConstants>DEBUG;TRACE;UNITY_IPHONE;ENABLE_MICROPHONE;ENABLE_TEXTUREID_MAP;ENABLE_AUDIO_FMOD;ENABLE_MONO;ENABLE_TERRAIN;ENABLE_SUBSTANCE;ENABLE_GENERICS;ENABLE_WWW;ENABLE_IMAGEEFFECTS;UNITY_IPHONE_API;ENABLE_WEBCAM;ENABLE_NETWORK;ENABLE_PHYSICS;ENABLE_CACHING;ENABLE_CLOTH;ENABLE_GAMECENTER;UNITY_IOS;ENABLE_SHADOWS;ENABLE_AUDIO;ENABLE_SINGLE_INSTANCE_BUILD_SETTING;UNITY_4_2_1;UNITY_4_2;ENABLE_PROFILER;UNITY_EDITOR;UNITY_EDITOR_WIN</DefineConstants>
+	<ErrorReport>prompt</ErrorReport>
+	<WarningLevel>4</WarningLevel>
+	<NoWarn>0169</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>Temp\bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <NoWarn>0169</NoWarn>
+	<DebugType>pdbonly</DebugType>
+	<Optimize>true</Optimize>
+	<OutputPath>Temp\bin\Release\</OutputPath>
+	<DefineConstants>TRACE</DefineConstants>
+	<ErrorReport>prompt</ErrorReport>
+	<WarningLevel>4</WarningLevel>
+	<NoWarn>0169</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\..\..\Applications\Unity\Unity.app\Contents\Frameworks\Managed\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="UnityEditor">
-      <HintPath>..\..\..\..\Applications\Unity\Unity.app\Contents\Frameworks\Managed\UnityEditor.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xml" />
+	<Reference Include="System" />
+    <Reference Include="System.XML" />
+	<Reference Include="System.Core" />
+	<Reference Include="UnityEngine">
+	  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEngine.dll</HintPath>
+	</Reference>
+	<Reference Include="UnityEditor">
+	  <HintPath>C:/Program Files (x86)/Unity/Editor/Data/Managed/UnityEditor.dll</HintPath>
+	</Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\scripts\AppContext.js" />
-    <Compile Include="Assets\scripts\AutoMap.js" />
-    <Compile Include="Assets\scripts\BallBehaviour.js" />
-    <Compile Include="Assets\scripts\CameraBehaviour.js" />
-    <Compile Include="Assets\scripts\MapGenerator.js" />
-    <Compile Include="Assets\scripts\Point2D.js" />
-    <Compile Include="Assets\scripts\StageInitiator.js" />
-    <Compile Include="Assets\scripts\StateText.js" />
-    <Compile Include="Assets\scripts\Title.js" />
-    <Compile Include="Assets\scripts\animation\AnimationContainer.js" />
-    <Compile Include="Assets\scripts\animation\BodyAnimation.js" />
-    <Compile Include="Assets\scripts\animation\EffectAnimation.js" />
-    <Compile Include="Assets\scripts\animation\LegAnimation.js" />
-    <Compile Include="Assets\scripts\animation\TextureAnimation.js" />
-    <Compile Include="Assets\scripts\character\BaseCharacter.js" />
-    <Compile Include="Assets\scripts\character\BaseObject.js" />
-    <Compile Include="Assets\scripts\character\Enemy1Behaviour.js" />
-    <Compile Include="Assets\scripts\character\PlayerBehaviour.js" />
-    <Compile Include="Assets\scripts\character\WoodenBoxBehaviour.js" />
-    <Compile Include="Assets\scripts\item\BaseItem.js" />
+     <Compile Include="Assets\scripts\AppContext.js" />
+     <Compile Include="Assets\scripts\AutoMap.js" />
+     <Compile Include="Assets\scripts\BallBehaviour.js" />
+     <Compile Include="Assets\scripts\CameraBehaviour.js" />
+     <Compile Include="Assets\scripts\MapGenerator.js" />
+     <Compile Include="Assets\scripts\Point2D.js" />
+     <Compile Include="Assets\scripts\StageInitiator.js" />
+     <Compile Include="Assets\scripts\StateText.js" />
+     <Compile Include="Assets\scripts\Title.js" />
+     <Compile Include="Assets\scripts\animation\AnimationContainer.js" />
+     <Compile Include="Assets\scripts\animation\BodyAnimation.js" />
+     <Compile Include="Assets\scripts\animation\EffectAnimation.js" />
+     <Compile Include="Assets\scripts\animation\LegAnimation.js" />
+     <Compile Include="Assets\scripts\animation\TextureAnimation.js" />
+     <Compile Include="Assets\scripts\character\BaseCharacter.js" />
+     <Compile Include="Assets\scripts\character\BaseObject.js" />
+     <Compile Include="Assets\scripts\character\Enemy1Behaviour.js" />
+     <Compile Include="Assets\scripts\character\PlayerBehaviour.js" />
+     <Compile Include="Assets\scripts\character\WoodenBoxBehaviour.js" />
+     <Compile Include="Assets\scripts\item\BaseItem.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
@@ -74,4 +73,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  
 </Project>

@@ -528,14 +528,14 @@ class BaseCharacter extends BaseObject {
              } else if (oldItemThrownName == null || item.itemName != oldItemThrownName){ 
              	 this.itemThrownMaxCount = item.thrownMaxCount;
              } 
-             var handR = transform.Find("rig/root/MCH-upper_arm_R_socket2/MCH-upper_arm_R_hinge/upper_arm_R/forearm_R/hand_R");
+             var handR = transform.Find("rig/root/MCH-upper_arm_R_socket2/MCH-upper_arm_R_hinge/upper_arm_R/forearm_R/hand_R/hand_R_equip000");
              item.rigidbody.constraints = RigidbodyConstraints.FreezePositionX
              						 | RigidbodyConstraints.FreezePositionY
              						 | RigidbodyConstraints.FreezePositionZ;
              
              if(handR != null) {
 	    	 	item.transform.parent = handR;
-	    	 	item.transform.localPosition = Vector3.zero;
+	    	 	item.transform.localPosition = Vector3.zero + Vector3.left * 0.3;
 	    	 } else {
 	    	 	item.transform.parent = this.transform;
 	    	 }
