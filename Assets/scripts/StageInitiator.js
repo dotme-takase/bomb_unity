@@ -4,6 +4,10 @@ static final var FADE_OUT = 2;
 
 var Player:GameObject;
 var Enemy1:GameObject;
+var Enemy2:GameObject;
+var Enemy3:GameObject;
+var Enemy4:GameObject;
+var Enemy5:GameObject;
 
 var Wall:GameObject;
 var Pillar:GameObject;
@@ -172,12 +176,11 @@ function Start () {
 	var floorBonus = Mathf.FloorToInt(_floorNumber / 3);     
     var enemyNum:int = Mathf.RoundToInt(Mathf.Min(20, (_floorNumber + 1) / 2 + Random.value * _floorNumber));
     for(var e0 =0; e0 < enemyNum; e0++) {
-    	var enemyInstance = Instantiate (Enemy1, Vector3(tempX, 0.0, tempY), Quaternion.identity);
+        var enemyIndex = Mathf.Min(Mathf.FloorToInt(Random.value * 2.5) + floorBonus, enemyData.Length - 1);
+   		var enemyData:Hashtable = enemyData[enemyIndex]; 
+    	var enemyInstance:GameObject = Instantiate (enemyData["body"], Vector3(tempX, 0.0, tempY), Quaternion.identity);
     	var enemy = enemyInstance.GetComponent(Enemy1Behaviour);
     	context.warpToRandom(enemy);
-    	
-    	var enemyIndex = Mathf.Min(floorBonus, enemyData.Length - 1);
-    	var enemyData:Hashtable = enemyData[enemyIndex]; 
     	createEnemy(enemyData, enemy);
     }
     
@@ -363,28 +366,28 @@ public static var ITEMS = {
     "grenade": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [0, 1],
-        "bonusPoint": 12,
+        "bonusPoint": 8,
         "speed": 24,
         "frame": 1
     },
     "crossGrenade": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [64,4],
-        "bonusPoint": 12,
+        "bonusPoint": 10,
         "speed": 24,
         "frame": 3
     },
     "grenade2x": {
         "type": BaseItem.TYPE_BOMB,
         "range2d": [64,9],
-        "bonusPoint": 24,
+        "bonusPoint": 12,
         "speed": 24,
         "frame": 5
     },
     "crossGrenade2x": {
         "type": BaseItem.TYPE_BOMB,
-        "range2d": [128,4],
-        "bonusPoint": 20,
+        "range2d": [96,4],
+        "bonusPoint": 15,
         "speed": 24,
         "frame": 7
     },
@@ -399,7 +402,7 @@ public static var ITEMS = {
     "crossBombTimer": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [64,4],
-        "bonusPoint": 16,
+        "bonusPoint": 20,
         "speed": 32,
         "leftTime": 20,
         "frame": 4
@@ -407,15 +410,15 @@ public static var ITEMS = {
     "bombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [96,9],
-        "bonusPoint": 28,
+        "bonusPoint": 24,
         "speed": 28,
-        "leftTime": 20,
+        "leftTime": 24,
         "frame": 6
     },
     "crossBombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
         "range2d": [160,4],
-        "bonusPoint": 24,
+        "bonusPoint": 32,
         "speed": 42,
         "leftTime": 20,
         "frame": 8
@@ -430,26 +433,136 @@ function loadMasterData(){
 	        'body': Enemy1,
 	        'name': 'Militia',
 	        'HP': 10,
-	        'speed': 5,
+	        'speed': 4,
 	        'scale': 1.0,
 	        'rightArm': 'grenade',
 	        'leftArm': null,
 	       	'dropItems': {
-	                'grenade': 5,
-	                'thrownPlus': 2
+	                'aidBox': 5
 	        }
 	    },
 	    {
 	        'body': Enemy1,
 	        'name': 'Militia',
 	        'HP': 10,
-	        'speed': 5,
+	        'speed': 4,
 	        'scale': 1.0,
 	        'rightArm': 'grenade',
 	        'leftArm': null,
 	       	'dropItems': {
 	                'aidBox': 5,
+	                'grenade': 5
+	        }
+	    },
+	    {
+	        'body': Enemy1,
+	        'name': 'Militia',
+	        'HP': 10,
+	        'speed': 4,
+	        'scale': 1.0,
+	        'rightArm': 'grenade',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'crossGrenade': 2,
+	                'thrownPlus': 1
+	        }
+	    },
+	    {
+	        'body': Enemy5,
+	        'name': 'Militia',
+	        'HP': 20,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'bombTimer',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5,
+	                'crossGrenade': 2,
 	                'crossBombTimer': 2
+	        }
+	    },
+	    {
+	        'body': Enemy1,
+	        'name': 'Militia',
+	        'HP': 20,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'grenade',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'crossGrenade': 2,
+	                'crossBombTimer': 2,
+	                'thrownPlus': 1
+	        }
+	    },
+	    {
+	        'body': Enemy3,
+	        'name': 'Militia',
+	        'HP': 20,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'grenade2x',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5,
+	                'grenade2x': 2,
+	                'thrownPlus': 2
+	        }
+	    },
+	    {
+	        'body': Enemy2,
+	        'name': 'Militia',
+	        'HP': 40,
+	        'speed': 3,
+	        'scale': 1.0,
+	        'rightArm': 'crossBombTimer2x',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 5,
+	                'bombTimer2x': 2,
+	                'thrownPlus': 2
+	        }
+	    },
+	    {
+	        'body': Enemy3,
+	        'name': 'Militia',
+	        'HP': 20,
+	        'speed': 5,
+	        'scale': 1.0,
+	        'rightArm': 'grenade2x',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'grenade2x': 2,
+	                'bombTimer2x': 2,
+	                'thrownPlus': 2
+	        }
+	    },
+	    {
+	        'body': Enemy4,
+	        'name': 'Militia',
+	        'HP': 40,
+	        'speed': 6,
+	        'scale': 1.0,
+	        'rightArm': 'bombTimer2x',
+	        'leftArm': null,
+	       	'dropItems': { 
+	       			'aidBox': 10,
+	                'bombTimer2x': 2,
+	                'thrownPlus': 4
+	        }
+	    },
+	    {
+	        'body': Enemy2,
+	        'name': 'Militia',
+	        'HP': 60,
+	        'speed': 3,
+	        'scale': 1.0,
+	        'rightArm': 'crossGrenade2x',
+	        'leftArm': null,
+	       	'dropItems': {
+	                'aidBox': 10,
+	                'crossGrenade2x': 1,
+	                'thrownPlus': 2
 	        }
 	    }
 	];
