@@ -417,7 +417,7 @@ public static var ITEMS = {
     },
     "crossBombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
-        "range2d": [160,4],
+        "range2d": [96,4],
         "bonusPoint": 32,
         "speed": 42,
         "leftTime": 20,

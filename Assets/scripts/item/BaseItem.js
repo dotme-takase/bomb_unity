@@ -243,7 +243,7 @@ class BaseItem extends MonoBehaviour{
     			if ((Time.time - thrownTime) > 1) { 
 	    			this.bomb();
 	    		} else {
-	    			this.transform.localScale += new Vector3(0.05, 0.05, 0.05) * (Time.time - thrownTime);
+	    			this.transform.localScale += new Vector3(0.02, 0.02, 0.02) * (Time.time - thrownTime);
 	    		}
     		}
     	}
