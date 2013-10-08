@@ -409,7 +409,7 @@ public static var ITEMS = {
     },
     "bombTimer2x": {
         "type": BaseItem.TYPE_BOMB_TIMER,
-        "range2d": [96,9],
+        "range2d": [64,9],
         "bonusPoint": 24,
         "speed": 28,
         "leftTime": 24,

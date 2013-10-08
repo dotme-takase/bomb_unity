@@ -238,8 +238,9 @@ class BaseItem extends MonoBehaviour{
     function Update(){
     	if( thrownTime == 0 ) {
     		thrownTime = Time.time;
-    	} else if ( thrownTime > 0) {
-    		if (this.type == BaseItem.TYPE_BOMB_TIMER ) { 
+    	} else if ( thrownTime >= 0) {
+    		if (this.type == BaseItem.TYPE_BOMB_TIMER 
+    			|| this.type == BaseItem.TYPE_BOMB) { 
     			if ((Time.time - thrownTime) > 1) { 
 	    			this.bomb();
 	    		} else {
@@ -256,7 +257,7 @@ class BaseItem extends MonoBehaviour{
     }
     
     function OnCollisionEnter (collision : Collision) {
-    	if( thrownTime > 0 ) {  
+    	if( thrownTime >= 0 ) {  
     		rigidbody.useGravity = true;
     		if ( this.type == BaseItem.TYPE_BOMB ) { 
     			this.bomb();
