@@ -71,8 +71,9 @@ class PlayerBehaviour extends BaseCharacter {
 		    }
 		}
 		 
-		var cosAngle:float = Mathf.Cos(CameraBehaviour.BASE_ANGLE * Mathf.PI / 180);
-		cursor.z = Camera.main.transform.position.y / cosAngle;		
+		var cosAngleYZ:float = Mathf.Cos(CameraBehaviour.BASE_ANGLE_YZ * Mathf.PI / 180);
+		var cosAngleXZ:float = Mathf.Cos(CameraBehaviour.BASE_ANGLE_XZ * Mathf.PI / 180);
+		cursor.z = Camera.main.transform.position.y / (cosAngleYZ * cosAngleXZ);		
 		cursor = Camera.main.ScreenToWorldPoint(cursor);
 		
 		var x_0:float = Camera.main.transform.position.x;

@@ -38,13 +38,19 @@ class EffectAnimation extends TextureAnimation {
 		}
 		
 		if( Camera.main ) {
+			var mainCamera = Camera.main;
+		
 			transform.position.y = 0.0;
-			var vN:Vector3 = (Camera.main.transform.position - _position).normalized;
+			var vN:Vector3 = (mainCamera.transform.position - _position).normalized;
 			transform.position = _position + vN * yToCamera;
 			
-			var v:Vector3 = Camera.main.transform.position - transform.position;
-	        v.y = v.z = 0.0;
-	        transform.LookAt(Camera.main.transform.position - v);     
+			
+	        var vec = mainCamera.transform.forward;
+	        vec.Normalize();
+	        this.transform.LookAt(this.transform.position + 
+	        	mainCamera.transform.rotation * Vector3.down,
+	        	mainCamera.transform.rotation * Vector3.back);
+	        
         }
 		super.Update();
 	}
